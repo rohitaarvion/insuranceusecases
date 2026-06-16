@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Governance Rules — Insurance Products</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap');
+
+  :root {
+    --ink: #0f1217;
+    --paper: #f7f6f3;
+    --rule-red: #c0392b;
+    --rule-amber: #d35400;
+    --rule-green: #1a6b3c;
+    --accent: #1e3a5f;
+    --accent-light: #e8eef5;
+    --border: #ccc9c2;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --term-chip: #dbeafe;
+    --term-chip-text: #1e3a5f;
+    --credit-chip: #fef3c7;
+    --credit-chip-text: #92400e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .doc-header {
+    background: var(--accent);
+    color: white;
+    padding: 48px 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 320px; height: 100%;
+    background: rgba(255,255,255,0.04);
+    clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+  }
+  .doc-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 12px;
+  }
+  .doc-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.25;
+    max-width: 680px;
+    margin-bottom: 20px;
+  }
+  .doc-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .doc-meta-item {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  .doc-meta-item strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 2px;
+  }
+
+  /* NAV TABS */
+  .tab-bar {
+    display: flex;
+    background: white;
+    border-bottom: 2px solid var(--border);
+    padding: 0 60px;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tab {
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    color: #666;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--accent); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CONTENT */
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 60px 80px;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* REGULATORY BANNER */
+  .reg-banner {
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    padding: 14px 20px;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 32px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .reg-banner strong { color: var(--accent); }
+
+  /* RULE CARDS */
+  .rules-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .rule-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .rule-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .rule-header:hover { background: #fafaf8; }
+
+  .rule-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    background: var(--accent);
+    padding: 3px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .rule-title-block { flex: 1; }
+  .rule-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.35;
+    margin-bottom: 4px;
+  }
+  .rule-subtitle {
+    font-size: 12px;
+    color: #666;
+    font-weight: 400;
+  }
+
+  .rule-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .chip-term { background: var(--term-chip); color: var(--term-chip-text); }
+  .chip-credit { background: var(--credit-chip); color: var(--credit-chip-text); }
+  .chip-both { background: #f0fdf4; color: var(--rule-green); }
+  .chip-severity-hard { background: #fee2e2; color: #991b1b; }
+  .chip-severity-conditional { background: #fef9c3; color: #713f12; }
+  .chip-severity-monitor { background: #f0fdf4; color: #14532d; }
+
+  .rule-expand {
+    font-size: 18px;
+    color: #999;
+    flex-shrink: 0;
+    padding-top: 1px;
+    transition: transform 0.2s;
+  }
+  .rule-card.open .rule-expand { transform: rotate(180deg); }
+
+  .rule-body {
+    display: none;
+    padding: 20px 20px 20px 56px;
+  }
+  .rule-card.open .rule-body { display: block; }
+
+  /* Rule body internals */
+  .rule-block { margin-bottom: 20px; }
+  .rule-block:last-child { margin-bottom: 0; }
+
+  .rule-block-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .rule-statement {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.5;
+    background: #f9f9f7;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 12px;
+  }
+
+  .rule-desc {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.7;
+  }
+
+  .reg-refs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .reg-ref {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--accent-light);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  .trigger-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 8px;
+  }
+  .trigger-table th {
+    background: #f2f1ee;
+    padding: 7px 12px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .trigger-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+    color: #333;
+  }
+  .trigger-table tr:last-child td { border-bottom: none; }
+  .trigger-table td:first-child { font-family: var(--mono); font-size: 11px; color: var(--ink); font-weight: 600; width: 35%; }
+
+  .action-block {
+    background: #fff8f8;
+    border: 1px solid #f5c6c6;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--rule-red);
+    margin-top: 8px;
+  }
+  .action-block.amber {
+    background: #fffbf0;
+    border-color: #fcd34d;
+    color: var(--rule-amber);
+  }
+  .action-block.green {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: var(--rule-green);
+  }
+  .action-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .product-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .product-col {
+    background: #fafafa;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+  }
+  .product-col-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .product-col-label.term { color: var(--term-chip-text); }
+  .product-col-label.credit { color: var(--credit-chip-text); }
+  .product-col ul { padding-left: 16px; }
+  .product-col li { font-size: 12.5px; color: #444; margin-bottom: 4px; }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* SECTION HEADER */
+  .section-head {
+    margin-bottom: 24px;
+  }
+  .section-head h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .section-head p {
+    font-size: 13px;
+    color: #666;
+    max-width: 720px;
+    line-height: 1.6;
+  }
+
+  /* SUMMARY TABLE */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .summary-table th {
+    background: var(--accent);
+    color: white;
+    padding: 11px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .summary-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table tr:hover td { background: #fafafa; }
+
+  hr.rule-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  .group-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 6px 0;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 16px;
+    margin-top: 32px;
+  }
+  .group-label:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-label">Aarvion AI — Runtime Governance Layer</div>
+  <div class="doc-title">AI Agent Governance Rules<br>Term Life & Credit Life Insurance</div>
+  <div class="doc-meta">
+    <div class="doc-meta-item"><strong>Products</strong>Term Life · Credit Life</div>
+    <div class="doc-meta-item"><strong>Channel</strong>Bancassurance / Corporate Agent</div>
+    <div class="doc-meta-item"><strong>Regulatory Basis</strong>IRDAI PPI 2024 · RBI FREE-AI 2025 · RBI Draft Sales Directions 2026</div>
+    <div class="doc-meta-item"><strong>Rule Version</strong>v1.0 — June 2026</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('overview')">Overview</div>
+  <div class="tab" onclick="switchTab('term')">Term Life Rules</div>
+  <div class="tab" onclick="switchTab('credit')">Credit Life Rules</div>
+  <div class="tab" onclick="switchTab('shared')">Shared / Banca Rules</div>
+  <div class="tab" onclick="switchTab('matrix')">Enforcement Matrix</div>
+</div>
+
+<!-- ============================================================ OVERVIEW ============================================================ -->
+<div id="section-overview" class="section active">
+  <div class="content">
+    <div class="reg-banner">
+      <strong>Regulatory basis for these rules:</strong> These rules are grounded in three binding or near-binding regulatory instruments:
+      (1) <strong>IRDAI (Protection of Policyholders' Interests) Regulations 2024 + Master Circular Sep 2024</strong> — mandatory suitability assessment, Customer Information Sheet, benefit illustration, 30-day free-look, mis-selling prohibition;
+      (2) <strong>RBI FREE-AI Framework, Aug 2025</strong> — 7 Sutras, 6 Pillars, 26 Recommendations including board-approved AI policy, mandatory audits, consumer disclosure, third-party vendor safeguards;
+      (3) <strong>RBI Draft Directions on Sales Practices, Feb 2026</strong> — explicit consent, prohibition on compulsory bundling, compensation liability for unsuitable product sale, process separation for credit life.
+    </div>
+
+    <div class="section-head">
+      <h2>What these rules govern</h2>
+      <p>Two AI agents operating via the Ensuredit MCP connector are in scope: one quoting and issuing <strong>Term Life</strong> policies (standalone protection), and one quoting and issuing <strong>Credit Life</strong> policies (loan-linked coverage issued at point of credit disbursement). Both operate within a <strong>bancassurance / corporate agent</strong> channel. The rules below encode what Aarvion's runtime enforcement layer must enforce at every action boundary — before a tool call executes, before a proposal is generated, and before a policy is issued.</p>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="chip chip-term">TERM</span> Term Life specific</div>
+      <div class="legend-item"><span class="chip chip-credit">CREDIT</span> Credit Life specific</div>
+      <div class="legend-item"><span class="chip chip-both">BOTH</span> Applies to both products</div>
+      <div class="legend-item"><span class="chip chip-severity-hard">HARD BLOCK</span> Agent must stop; no override path</div>
+      <div class="legend-item"><span class="chip chip-severity-conditional">CONDITIONAL</span> Pause; requires human-in-loop or documented exception</div>
+      <div class="legend-item"><span class="chip chip-severity-monitor">MONITOR</span> Log + alert; agent may proceed with audit trail</div>
+    </div>
+
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Rule ID</th>
+          <th>Rule Name</th>
+          <th>Products</th>
+          <th>Enforcement</th>
+          <th>Regulatory Anchor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>TL-01</td><td>Suitability Gate — Needs-Based Assessment Mandatory</td><td><span class="chip chip-term">TERM</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI PPI 2024 §5.2</td></tr>
+        <tr><td>TL-02</td><td>Benefit Illustration Delivery Before Proposal</td><td><span class="chip chip-term">TERM</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI Master Circular Sep 2024 §3</td></tr>
+        <tr><td>TL-03</td><td>Sum Assured Ceiling — Income Multiple Cap</td><td><span class="chip chip-term">TERM</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI Underwriting Guidelines</td></tr>
+        <tr><td>TL-04</td><td>Medical Underwriting Referral Trigger</td><td><span class="chip chip-term">TERM</span></td><td><span class="chip chip-severity-conditional">CONDITIONAL</span></td><td>IRDAI PPI 2024</td></tr>
+        <tr><td>TL-05</td><td>Replacement / Churning Detection</td><td><span class="chip chip-term">TERM</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI Circular on Mis-Selling</td></tr>
+        <tr><td>CL-01</td><td>Decoupling Gate — Credit Life Cannot Be Loan Condition</td><td><span class="chip chip-credit">CREDIT</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>RBI Draft Directions 2026; IRDAI PPI 2024</td></tr>
+        <tr><td>CL-02</td><td>Process Separation — Loan Journey vs Insurance Journey</td><td><span class="chip chip-credit">CREDIT</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>RBI Draft Directions 2026</td></tr>
+        <tr><td>CL-03</td><td>Premium Financing Cap — Single Premium Into Loan Ceiling</td><td><span class="chip chip-credit">CREDIT</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>RBI LTV Guidelines; IRDAI PPI 2024</td></tr>
+        <tr><td>CL-04</td><td>Insurer Choice Optionality — No Tied Selling</td><td><span class="chip chip-credit">CREDIT</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI Corporate Agent Regs 2015; RBI</td></tr>
+        <tr><td>CL-05</td><td>Coverage Proportionality — Policy Amount vs Outstanding Principal</td><td><span class="chip chip-credit">CREDIT</span></td><td><span class="chip chip-severity-conditional">CONDITIONAL</span></td><td>IRDAI Underwriting; RBI Circular</td></tr>
+        <tr><td>BC-01</td><td>Customer Information Sheet Delivery Gate</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI Master Circular Sep 2024</td></tr>
+        <tr><td>BC-02</td><td>Free-Look Period Disclosure Mandatory</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI PPI 2024 — 30 days universal</td></tr>
+        <tr><td>BC-03</td><td>Nominee Completeness Before Issuance</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>IRDAI PPI 2024</td></tr>
+        <tr><td>BC-04</td><td>AI Disclosure to Customer</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>RBI FREE-AI 2025 Pillar: Protection</td></tr>
+        <tr><td>BC-05</td><td>Affirmative Consent — No Pre-Ticked or Passive Consent</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-hard">HARD BLOCK</span></td><td>RBI Draft Directions 2026; DPDP Act 2023</td></tr>
+        <tr><td>BC-06</td><td>Cryptographic Provenance — Every Decision Logged</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-monitor">MONITOR</span></td><td>RBI FREE-AI 2025 Pillar: Assurance</td></tr>
+        <tr><td>BC-07</td><td>Human Escalation Gate for Edge Profiles</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-conditional">CONDITIONAL</span></td><td>RBI FREE-AI 2025 Pillar: Governance</td></tr>
+        <tr><td>BC-08</td><td>Commission Conflict Disclosure</td><td><span class="chip chip-both">BOTH</span></td><td><span class="chip chip-severity-conditional">CONDITIONAL</span></td><td>IRDAI EOM Regs 2024; RBI Draft 2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ TERM LIFE ============================================================ -->
+<div id="section-term" class="section">
+  <div class="content">
+    <div class="section-head">
+      <h2>Term Life — Governance Rules</h2>
+      <p>Term Life sold through a bank's corporate agent channel is the highest-risk product for mis-selling via an AI agent because the agent can quote, propose, and issue without a human salesperson in the loop. These rules govern what the Term Life agent is permitted to do and under what conditions it must halt.</p>
+    </div>
+
+    <div class="reg-banner">
+      <strong>Why this matters for the business:</strong> The Finance Minister, IRDAI Chairman, and RBI Governor have all individually flagged bancassurance mis-selling in 2024–25. An AI agent that issues Term Life without documented suitability evidence is the single highest-risk action point for an IRDAI enforcement action or RBI advisory notice.
+    </div>
+
+    <div class="rules-grid">
+
+      <div class="rule-card" id="TL-01">
+        <div class="rule-header" onclick="toggleRule('TL-01')">
+          <div class="rule-id">TL-01</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Suitability Gate — Needs-Based Assessment Mandatory</div>
+            <div class="rule-subtitle">Agent cannot proceed to proposal without completing and logging a needs assessment</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-term">TERM</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The agent must collect, validate, and record a suitability assessment — covering income, financial dependents, existing coverage, and stated protection need — before generating any policy proposal or premium quote for a customer. Absence of any one field = hard block on proposal generation.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Why Regulators Mandate This</div>
+            <div class="rule-desc">IRDAI's Protection of Policyholders' Interests Regulations 2024 §5.2 mandates a board-approved suitability policy for all life insurance and annuity products. The September 2024 Master Circular operationalises this — every insurer and its distribution channel (including AI agents acting as corporate agent arms) must assess suitability before sale. Banks already receive more mis-selling complaints than any other channel per IRDAI's own annual report. An AI agent that skips suitability and issues directly is legally equivalent to a human agent doing the same — the bank/insurer bears joint liability.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Required Inputs Before Agent May Proceed</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Field</th><th>Validation Rule</th></tr></thead>
+                <tbody>
+                  <tr><td>Annual Income</td><td>Must be declared; cannot be inferred from loan amount or bank data</td></tr>
+                  <tr><td>Number of Financial Dependents</td><td>Minimum of 0 accepted; null = block</td></tr>
+                  <tr><td>Existing Life Cover</td><td>Yes/No + amount; agent must flag if proposed cover + existing > 20x income</td></tr>
+                  <tr><td>Primary Protection Need</td><td>Enum: income replacement / loan cover / child's education / legacy — must be selected</td></tr>
+                  <tr><td>Suitability Declaration</td><td>Agent must log structured decision: "Product is suitable because [reason]" — cannot be boilerplate</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Agent returns error state. No premium quote is generated. No proposal draft is created. Tool call to <code>saveProposalForm</code> is rejected at the governance layer. Customer receives: "We need a few more details about your financial needs before we can generate a recommendation."
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI PPI Regs 2024 §5.2</span>
+              <span class="reg-ref">IRDAI Master Circular Sep 2024 §Suitability</span>
+              <span class="reg-ref">RBI FREE-AI 2025 Pillar: Protection</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="TL-02">
+        <div class="rule-header" onclick="toggleRule('TL-02')">
+          <div class="rule-id">TL-02</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Benefit Illustration Delivery Before Proposal Acceptance</div>
+            <div class="rule-subtitle">Customer must receive and acknowledge a CIS + benefit illustration before the agent advances to purchase</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-term">TERM</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">After a proposal is generated, the agent must deliver a Customer Information Sheet (CIS) and customised benefit illustration to the customer and obtain an explicit digital acknowledgment before calling <code>buyProductClient</code> or any purchase/issuance tool. The acknowledgment must be timestamped and stored with policy provenance.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Why Regulators Mandate This</div>
+            <div class="rule-desc">The IRDAI Master Circular on Life Insurance Products (June 2024) mandates benefit illustrations for every life insurance product at point of sale. The Master Circular on Policyholder Protection (Sep 2024) mandates a CIS for all products — signed/acknowledged by both the customer and the authorized representative. In an AI-agent flow, the "authorized representative" is the agent itself — meaning the agent must generate the CIS, deliver it (digitally), and capture acknowledgment before any purchase action. Failure = the policy is issued without mandated pre-sale disclosure, creating grounds for claim rejection disputes and regulator action.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Sequencing Enforcement</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Step</th><th>Required Before Next Step</th></tr></thead>
+                <tbody>
+                  <tr><td>Suitability Complete (TL-01)</td><td>Required before generating proposal</td></tr>
+                  <tr><td>Proposal Generated</td><td>CIS auto-generated at this point; must be delivered</td></tr>
+                  <tr><td>CIS Delivery Confirmed</td><td>Agent must receive explicit confirmation (not timed-out/defaulted)</td></tr>
+                  <tr><td>Benefit Illustration Sent</td><td>Customised to this customer's age, sum assured, premium — not generic</td></tr>
+                  <tr><td>Acknowledgment Logged</td><td>Timestamp + session ID stored in provenance log</td></tr>
+                  <tr><td><code>buyProductClient</code> Tool Call</td><td>Only permitted after all above are logged</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Purchase tool call is rejected if acknowledgment is not recorded. Agent cannot progress. Timeout without customer response = loop back to CIS delivery, not auto-advance to purchase.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI MC Life Products Jun 2024 §3</span>
+              <span class="reg-ref">IRDAI MC Policyholder Protection Sep 2024 §CIS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="TL-03">
+        <div class="rule-header" onclick="toggleRule('TL-03')">
+          <div class="rule-id">TL-03</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Sum Assured Ceiling — Income Multiple Hard Cap</div>
+            <div class="rule-subtitle">Agent cannot issue or propose coverage that exceeds regulatory underwriting limits without referral</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-term">TERM</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The agent must compute Human Life Value (HLV) from declared income and cap the proposed sum assured at the insurer's pre-filed underwriting ceiling (typically 25–30x annual income for standard term without medical underwriting). Any proposal exceeding this ceiling must be blocked and routed to underwriting — the agent cannot proceed to issuance regardless of customer willingness to pay.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Business & Regulatory Logic</div>
+            <div class="rule-desc">Over-insurance is a specific risk flagged in IRDAI underwriting guidelines. In a bancassurance context, an AI agent operating with no human underwriter in the loop is most likely to over-issue — especially when the loan amount creates an implicit pressure for high coverage. An agent that issues ₹2 Cr sum assured on ₹4L annual income with no medical check is a regulatory and claims liability. This rule forces the agent to check HLV math before every issuance.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Calculation Gate</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Check</th><th>Threshold</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Proposed SA ÷ Annual Income</td><td>> 25x</td><td>Hard block — route to manual underwriting</td></tr>
+                  <tr><td>Proposed SA + Existing Cover ÷ Income</td><td>> 30x</td><td>Hard block — even if individual policy is within limits</td></tr>
+                  <tr><td>Non-medical issuance limit (product-level)</td><td>Per insurer's filed F&U</td><td>Block if proposed SA exceeds non-medical ceiling</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK + REFERRAL</div>
+              Agent stops issuance, creates a referral case with the underwriting team, and informs the customer that their coverage request requires additional review. No partial issuance is permitted.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI Underwriting Guidelines (F&U)</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="TL-04">
+        <div class="rule-header" onclick="toggleRule('TL-04')">
+          <div class="rule-id">TL-04</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Medical Underwriting Referral Trigger</div>
+            <div class="rule-subtitle">Declared health conditions must route to medical underwriting — agent cannot override or ignore disclosures</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-term">TERM</span>
+            <span class="chip chip-severity-conditional">CONDITIONAL</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">When the proposal form contains any declaration of pre-existing medical conditions (diabetes, hypertension, cancer history, cardiac conditions, or any "Yes" on medical disclosure fields), the agent must pause issuance and route the proposal to a licensed medical underwriter. The agent cannot substitute its own judgment, modify the declaration, or proceed on the assumption that the condition is "minor."</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Why This Is Non-Negotiable</div>
+            <div class="rule-desc">Concealment or ignoring of pre-existing conditions is the single largest source of life insurance claim repudiation. An AI agent that sees a PED declaration and issues anyway creates: (a) a policy that will likely be contested at claim, (b) a regulatory violation (IRDAI mandates proper underwriting for PED declarations), and (c) criminal exposure for the corporate agent for knowingly issuing a policy with incomplete underwriting. The customer facing a claim rejection is exactly the outcome regulators are trying to prevent.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Trigger Conditions</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Condition</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>Any PED field = "Yes"</td><td>Pause, flag, route to underwriting queue</td></tr>
+                  <tr><td>BMI > 35 or < 16</td><td>Flag and refer — auto-quote blocked</td></tr>
+                  <tr><td>Age > 50 for SA > ₹50L</td><td>Medical referral mandatory per most insurers' F&U</td></tr>
+                  <tr><td>Conflicting health declarations (different answers to similar questions)</td><td>Flag as inconsistency — block and refer</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block amber">
+              <div class="action-label">CONDITIONAL — HUMAN IN LOOP</div>
+              Agent halts at proposal stage. Creates a medical referral case. Informs customer of next steps and expected TAT. Resume signal from licensed underwriter required before agent can proceed to issuance.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI F&U Guidelines (product-specific)</span>
+              <span class="reg-ref">Insurance Act 1938 §45 (misrepresentation)</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="TL-05">
+        <div class="rule-header" onclick="toggleRule('TL-05')">
+          <div class="rule-id">TL-05</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Replacement & Churning Detection</div>
+            <div class="rule-subtitle">Agent must flag when a customer is being proposed a new policy that replaces an existing one held with the same or another insurer</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-term">TERM</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">If the customer's suitability data or declaration indicates they hold an existing term life policy (same or competing insurer), and the proposed product provides materially similar or lesser coverage at the same or higher premium, the agent must flag this as a potential replacement case. The agent must document a specific benefit justification for the new policy and obtain explicit customer acknowledgment of the replacement before issuance. It cannot proceed based on a generic acknowledgment.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Why Regulators Flag This</div>
+            <div class="rule-desc">Policy churning in bancassurance is one of IRDAI's stated top concerns. Banks have an incentive to sell new policies because they earn commission on first-year premiums. An AI agent, if unconstrained, will optimise for closure — it has no natural resistance to replacing a perfectly good policy if the customer is willing. IRDAI's regulations and the RBI mis-selling framework both identify replacement selling as a mis-selling risk requiring specific disclosure and documentation.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK ON SILENT REPLACEMENT</div>
+              If existing coverage is declared and proposed SA is within 20% of existing SA — the agent cannot proceed without: (a) generating a side-by-side comparison, (b) documenting the benefit justification for replacement, (c) recording explicit customer acknowledgment of the comparison. No issuance without all three.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI Circular on Mis-Selling</span>
+              <span class="reg-ref">IRDAI Corporate Agent Regs 2015</span>
+              <span class="reg-ref">RBI Draft Directions on Sales Practices 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ CREDIT LIFE ============================================================ -->
+<div id="section-credit" class="section">
+  <div class="content">
+    <div class="section-head">
+      <h2>Credit Life — Governance Rules</h2>
+      <p>Credit Life is the most heavily regulated product in the bancassurance stack right now. RBI's February 2026 Draft Directions on Sales Practices specifically target loan-linked insurance bundling, force-selling, and insurer choice restriction. An AI agent operating at loan disbursement is in the most exposure-heavy position possible.</p>
+    </div>
+
+    <div class="reg-banner">
+      <strong>The regulatory moment in real time:</strong> RBI's proposed mis-selling norms are expected to have a 10–20% impact on banks' credit life business. Regulatory frameworks under IRDAI and RBI make it clear that borrowers cannot be compelled to opt for a specific insurer, though ground-level practices have often reflected otherwise. An AI agent operating without these rules is the highest-risk point of regulatory exposure in your entire product stack.
+    </div>
+
+    <div class="rules-grid">
+
+      <div class="rule-card" id="CL-01">
+        <div class="rule-header" onclick="toggleRule('CL-01')">
+          <div class="rule-id">CL-01</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Decoupling Gate — Credit Life Cannot Be Presented as Loan Condition</div>
+            <div class="rule-subtitle">Agent language, flow, and data must treat insurance as optional — never as a prerequisite for loan approval or disbursement</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-credit">CREDIT</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The agent is prohibited from using any language, conditional logic, or data flow that presents credit life insurance as required for loan disbursement, lower interest rate, faster processing, or any other loan benefit. Insurance must be presented as a standalone protection option after the loan is confirmed. The disbursement trigger in the loan system must be independent of the insurance decision.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Why This Is the #1 Regulatory Priority for Credit Life</div>
+            <div class="rule-desc">This is where the regulator and the press are currently focused. RBI guidelines clarify that the purchase of insurance products, while beneficial, is not mandatory for loan approval, ensuring that borrowers are not unduly pressured into buying insurance from their lenders. The practice of force-selling unrelated insurance under the garb of lending has raised concerns of fairness, transparency, and accountability in the financial sector. An AI agent that routes a borrower through an insurance flow before confirming loan disbursement is systematically replicating the exact practice the regulator is trying to eliminate.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Prohibited Agent Behaviours</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Prohibited Pattern</th><th>Why It's a Violation</th></tr></thead>
+                <tbody>
+                  <tr><td>Insurance screen appears before loan confirmation screen</td><td>Implies insurance is part of loan process — force-selling</td></tr>
+                  <tr><td>"Complete your loan" CTA gated behind insurance step</td><td>Explicit bundling — RBI Draft Directions §Compulsory Bundling</td></tr>
+                  <tr><td>Agent message: "To protect your loan, please take this cover"</td><td>Framing as loan protection implies compulsion</td></tr>
+                  <tr><td>Loan EMI calculation shown with insurance premium included by default</td><td>Implicit bundling — defaults to "opted in"</td></tr>
+                  <tr><td>Loan status changes based on insurance decision</td><td>System-level linking = compulsory bundling</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK — AGENT CANNOT EXECUTE BUNDLED FLOW</div>
+              If agent detects that its insurance flow is being triggered as part of a loan disbursement sequence (same session, same customer, loan status = pending), it must: (a) complete or defer the insurance interaction to a separate, independent session; (b) confirm loan disbursement is not contingent on outcome; (c) log the decoupling confirmation in provenance trail.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI Draft Directions on Sales Practices Feb 2026</span>
+              <span class="reg-ref">RBI Home Loan Guidelines 2024 (Insurance Optional)</span>
+              <span class="reg-ref">IRDAI Corporate Agent Regs 2015</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="CL-02">
+        <div class="rule-header" onclick="toggleRule('CL-02')">
+          <div class="rule-id">CL-02</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Process Separation — Loan Journey vs Insurance Journey Must Be Distinct</div>
+            <div class="rule-subtitle">System-level separation, not just language — two distinct session contexts required</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-credit">CREDIT</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The credit life agent must operate in a session context that is architecturally separate from the loan origination system. No shared state, no shared action triggers, no shared completion events between the loan workflow and the insurance workflow. Proof of separation must be available in the agent's provenance log on request by the regulator.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Driver</div>
+            <div class="rule-desc">Credit life is wrapped with the mortgage business and both cannot be clubbed in a single process. Banks will have to separate the process. This is not a soft recommendation — it is the expected outcome of the RBI's proposed directions. RBI's Draft Directions require explicit consent, prohibition on compulsory bundling, and compensation liability for unsuitable financial product sales. Process separation is the architectural enforcement of that prohibition.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">What Separation Means in Practice</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Layer</th><th>Separation Requirement</th></tr></thead>
+                <tbody>
+                  <tr><td>Session / Context</td><td>Insurance agent session must not inherit loan session context or carry loan approval status as a parameter</td></tr>
+                  <tr><td>Completion Events</td><td>Insurance issuance event must not trigger or unblock a loan disbursement event</td></tr>
+                  <tr><td>UI / Agent Flow</td><td>Customer must have explicitly ended the loan flow and separately initiated the insurance flow</td></tr>
+                  <tr><td>Provenance Log</td><td>Agent logs: "Insurance session initiated independently at [timestamp]. Loan disbursement status at time of insurance initiation: [confirmed/N-A]. No loan-insurance linkage exists."</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK + AUDIT LOG</div>
+              Any attempt to initiate credit life agent flow with a shared loan session ID or while loan disbursement is in a pending state triggers a hard block. Incident is logged as a process violation and escalated to the compliance owner.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI Draft Directions on Sales Practices Feb 2026</span>
+              <span class="reg-ref">Business Standard — RBI mis-selling norms, Feb 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="CL-03">
+        <div class="rule-header" onclick="toggleRule('CL-03')">
+          <div class="rule-id">CL-03</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Premium Financing Cap — Single Premium Into Loan Amount</div>
+            <div class="rule-subtitle">When credit life premium is rolled into the loan, the agent must enforce LTV and proportionality limits</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-credit">CREDIT</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">If the customer elects to finance the single premium by rolling it into the loan, the agent must: (a) check that the resulting loan amount does not breach the insurer's or lender's LTV ceiling; (b) disclose the total additional interest cost of financing the premium over the loan tenure; (c) offer the alternative of paying premium out-of-pocket. The agent cannot default to premium financing without explicit customer selection.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Business & Regulatory Logic</div>
+            <div class="rule-desc">Single-premium credit life rolled into the loan is a common practice — and a common source of complaints. The customer often does not realise they are paying interest on the insurance premium for the full loan tenure. In home loan scenarios, the RBI has set specific LTV ratios that cannot be breached. Including the single premium in the loan without disclosing its cost impact and without checking LTV compliance is both a mis-selling risk and an LTV guideline violation.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Required Checks</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Check</th><th>Rule</th></tr></thead>
+                <tbody>
+                  <tr><td>LTV post-premium addition</td><td>Must not exceed applicable RBI LTV ceiling for that loan category</td></tr>
+                  <tr><td>Interest cost disclosure</td><td>Agent must compute and display: "Financing this premium adds ₹X in total interest over the loan tenure"</td></tr>
+                  <tr><td>Default selection</td><td>Premium financing cannot be pre-selected; customer must actively choose it</td></tr>
+                  <tr><td>Out-of-pocket alternative</td><td>Agent must present both options with clear comparison before customer decides</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK IF LTV BREACHED / CONDITIONAL IF DISCLOSURE INCOMPLETE</div>
+              LTV breach = hard block on issuance. Disclosure not shown = agent must display interest cost comparison before advancing. Cannot proceed to <code>buyProductClient</code> without both checks satisfied.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI LTV Guidelines (Home Loans)</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024 (Full Disclosure)</span>
+              <span class="reg-ref">RBI Draft Directions on Sales Practices 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="CL-04">
+        <div class="rule-header" onclick="toggleRule('CL-04')">
+          <div class="rule-id">CL-04</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Insurer Choice Optionality — No Tied or Default Selling</div>
+            <div class="rule-subtitle">Agent must present insurer options; it cannot default to the bank's tied insurer or suppress alternatives</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-credit">CREDIT</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">Under the open architecture bancassurance model, the agent must present the customer with the available credit life products from different insurers tied to the bank's corporate agent license. It cannot surface only one insurer's product by default, cannot rank or weight options based on commission rates, and must present comparison on coverage, premium, and exclusions before the customer selects.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Logic</div>
+            <div class="rule-desc">The open architecture model allows banks to offer products from different insurers, improving customer choice. It also requires strong governance to manage complexity and avoid bias in product recommendations. An AI agent, by its nature, will surface products in a ranked order. That ranking is a recommendation — and under IRDAI's suitability framework, recommendations must be based on the customer's needs, not on the insurer's commission rate. The agent's product ranking algorithm must be auditable and must not embed commission weighting.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Governance Requirements</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Requirement</th><th>Implementation</th></tr></thead>
+                <tbody>
+                  <tr><td>Product ranking criteria</td><td>Must be based on suitability match, premium-to-coverage ratio, exclusion fit — not commission rate</td></tr>
+                  <tr><td>Commission disclosure</td><td>If customer asks "why is this product recommended?" — agent must be able to state non-commission basis</td></tr>
+                  <tr><td>Number of options</td><td>Must present minimum 2 options if available on the platform; cannot suppress alternatives</td></tr>
+                  <tr><td>Default selection</td><td>No product can be pre-selected; customer must actively choose</td></tr>
+                  <tr><td>Audit requirement</td><td>Ranking logic versioned and available for regulator inspection (RBI FREE-AI Assurance Pillar)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK ON SINGLE-OPTION FLOW</div>
+              If only one insurer product is surfaced and it is the bank's primary tied insurer, and other products are available on the platform — this is a policy violation. Agent must surface all available products. Provenance log must record: "Products presented: [list]. Ranking basis: [criteria]. Commission rates: [not used in ranking]."
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI Corporate Agent Regs 2015 (open architecture)</span>
+              <span class="reg-ref">IRDAI EOM + Commission Regs 2024</span>
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Governance</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="CL-05">
+        <div class="rule-header" onclick="toggleRule('CL-05')">
+          <div class="rule-id">CL-05</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Coverage Proportionality — Policy Amount vs Outstanding Principal</div>
+            <div class="rule-subtitle">Agent must flag over-coverage: credit life SA materially exceeding outstanding loan balance is a red flag</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-credit">CREDIT</span>
+            <span class="chip chip-severity-conditional">CONDITIONAL</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The sum assured proposed for credit life must be proportional to the outstanding loan principal. If the proposed sum assured exceeds the loan principal by more than 10%, the agent must flag this discrepancy, explain the mismatch to the customer, and obtain explicit acknowledgment before issuance. Over-coverage in credit life serves no purpose for the customer and may indicate that the agent is being used to inflate premium revenue.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Product Design Logic</div>
+            <div class="rule-desc">Credit life's defining characteristic is that the death benefit is directly tied to the loan balance. Credit life insurance is a type of life insurance that kicks in to pay off any outstanding debt in the event that the borrower dies before the loan is paid in full. The policy's death benefit is directly tied to the loan balance. If the sum assured materially exceeds the loan — the excess benefit goes to the nominee, not the lender. While not necessarily harmful to the customer, it changes the product's nature and may indicate an upselling pattern that regulators would flag as inconsistent with the product's stated purpose.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block amber">
+              <div class="action-label">CONDITIONAL — DISCLOSURE AND ACKNOWLEDGMENT REQUIRED</div>
+              Agent surfaces the discrepancy: "The coverage you've selected (₹X) exceeds your loan balance (₹Y) by [Z%]. The excess ₹[amount] will be paid to your nominee, not toward the loan. Do you want to proceed?" — Explicit "Yes, I understand and want to proceed" required before issuance. Logged with timestamp.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI PPI Regs 2024 (Full Disclosure)</span>
+              <span class="reg-ref">IRDAI Underwriting Guidelines</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SHARED / BANCA ============================================================ -->
+<div id="section-shared" class="section">
+  <div class="content">
+    <div class="section-head">
+      <h2>Shared Rules — Both Products, Bancassurance Channel</h2>
+      <p>These rules apply to both the Term Life and Credit Life agents. They are grounded in the RBI FREE-AI Framework (Aug 2025), IRDAI Master Circular on Policyholder Protection (Sep 2024), RBI Draft Directions on Sales Practices (Feb 2026), and the Digital Personal Data Protection Act 2023.</p>
+    </div>
+
+    <div class="rules-grid">
+
+      <div class="rule-card" id="BC-01">
+        <div class="rule-header" onclick="toggleRule('BC-01')">
+          <div class="rule-id">BC-01</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Customer Information Sheet (CIS) Delivery Gate</div>
+            <div class="rule-subtitle">Mandatory pre-sale document — agent cannot issue without delivery confirmation</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">A Customer Information Sheet (CIS) — a plain-language summary of inclusions, exclusions, premium, and key terms — must be delivered to the customer and acknowledged before any purchase tool is invoked. Acknowledgment must be affirmative (not a timed-out default). The CIS must be product-specific, not generic.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">IRDAI requires insurers to provide a Customer Information Sheet for all insurance products. A CIS is a document provided by the insurer along with the policy document that explains in simple words the basic features of a policy including inclusions, exclusions, and key terms. Acknowledgment in physical or digital form must be obtained from the customer. On request, CIS will be made available in local language.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Product-Specific CIS Requirements</div>
+            <div class="product-split">
+              <div class="product-col">
+                <div class="product-col-label term">Term Life CIS Must Include</div>
+                <ul>
+                  <li>Sum assured and coverage period</li>
+                  <li>Premium amount and frequency</li>
+                  <li>Exclusions (suicide clause, war, aviation)</li>
+                  <li>Free-look period (30 days)</li>
+                  <li>Claim process and contact</li>
+                </ul>
+              </div>
+              <div class="product-col">
+                <div class="product-col-label credit">Credit Life CIS Must Include</div>
+                <ul>
+                  <li>Coverage = loan outstanding at time of death</li>
+                  <li>Whether premium is single or regular</li>
+                  <li>Whether premium is financed into loan</li>
+                  <li>What happens to excess benefit (if any)</li>
+                  <li>Exclusions (pre-existing conditions, suicide)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              <code>buyProductClient</code> call is rejected at the governance layer if CIS delivery + acknowledgment flag is not set to TRUE in the session state. No exceptions.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI MC Policyholder Protection Sep 2024 §CIS</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-02">
+        <div class="rule-header" onclick="toggleRule('BC-02')">
+          <div class="rule-id">BC-02</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Free-Look Period Disclosure — 30 Days Universal</div>
+            <div class="rule-subtitle">Agent must disclose and confirm understanding of the 30-day free-look period before issuance</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">Before issuing any policy, the agent must explicitly inform the customer of their 30-day free-look right — in plain language — and must record their acknowledgment. The agent cannot treat this as a footnote or small print. The disclosure must be a distinct, prominent step in the agent's flow.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">Policyholders now have a 30-day free-look period for life and health insurance policies. This allows them to review and understand the policy terms and conditions, with the option to cancel if they are unsatisfied. This applies regardless of how or where the policy is sold — including AI-agent-mediated digital sales. The free-look right exists to protect customers who may have been pressured or confused during the sales process, which is a specific risk in an AI-agent bancassurance context.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Required Agent Language</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Scenario</th><th>Required Disclosure</th></tr></thead>
+                <tbody>
+                  <tr><td>Before final purchase confirmation</td><td>"You have 30 days from the date of receiving your policy document to review it and cancel without penalty. Your premium will be refunded. Would you like to proceed?"</td></tr>
+                  <tr><td>After issuance confirmation</td><td>"Your policy is issued. You have until [date = today + 30] to cancel it for a full refund. To cancel, [contact method]."</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Issuance blocked if free-look disclosure step is not logged as completed.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI PPI Regs 2024 (30-Day Free-Look Universal)</span>
+              <span class="reg-ref">IRDAI MC Policyholder Protection Sep 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-03">
+        <div class="rule-header" onclick="toggleRule('BC-03')">
+          <div class="rule-id">BC-03</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Nominee Completeness Gate — Policy Cannot Issue Without Full Nominee Details</div>
+            <div class="rule-subtitle">Bank account details AND nominee name/relationship/DOB required before issuance</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">A policy cannot be issued with incomplete nominee information. Required fields: nominee name, relationship to policyholder, date of birth, and contact number. For minor nominees, a trustee/appointee must also be recorded. An incomplete nominee record at issuance is the primary cause of delayed or disputed claim settlements — and the regulator explicitly mandates nominee completeness at point of sale.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">IRDAI's 2024 regulations require not just the nominee's name but bank account details too. Incomplete nominee information leads to delayed claims, which creates angry clients and lost referrals. In the bancassurance context, this is especially critical for credit life — where the death benefit should go to the lender (to settle the loan) and any residual to the nominee. If nominee details are incomplete, claim settlement is delayed and disputed.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Agent cannot call <code>buyProductClient</code> or any issuance tool if nominee name, relationship, or DOB is null or empty. For minor nominees, trustee field must also be non-null. Agent returns: "To issue your policy, we need your nominee's complete details."
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI PPI Regs 2024 (Nominee Requirements)</span>
+              <span class="reg-ref">Insurance Act 1938 §39</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-04">
+        <div class="rule-header" onclick="toggleRule('BC-04')">
+          <div class="rule-id">BC-04</div>
+          <div class="rule-title-block">
+            <div class="rule-title">AI Disclosure to Customer — Mandatory at Session Start</div>
+            <div class="rule-subtitle">Customer must be informed they are interacting with an AI agent before any sales interaction begins</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">At the start of every insurance interaction, the agent must identify itself as an AI system — not as a human advisor, not as "our team," not as a named persona that implies human presence. The customer must be offered the option to speak with a human advisor before the sales process begins. This disclosure must be logged.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">The RBI FREE-AI framework places consumer protection on equal footing with innovation. Under the Protection pillar, institutions are required to embed safeguards including bias prevention and detection of harmful outputs. More directly, the most important obligations for regulated entities include ensuring all AI data practices strictly comply with India's Digital Personal Data Protection Act, 2023, and developing robust mechanisms for detecting, escalating, and reporting AI-related incidents. An AI agent that impersonates a human advisor is a deceptive practice under both DPDP and IRDAI's mis-selling framework — informed consent cannot exist if the customer does not know they are interacting with an AI.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Required Disclosure Language</div>
+            <div class="rule-desc" style="background:#f9f9f7; padding: 10px 14px; border-radius: 4px; border-left: 3px solid var(--accent); font-size: 13px; margin-top: 8px;">
+              "Hi, I'm an AI assistant helping you explore insurance options from [Bank Name] in partnership with [Insurer Name]. I'm not a human advisor. If you'd prefer to speak with a person, you can reach our team at [contact]. Otherwise, I'm happy to help you find the right coverage."
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Agent session cannot advance to product recommendation or suitability questions until AI disclosure is delivered and the session timestamp is recorded. If the customer requests a human, the agent must provide contact information and cannot attempt to retain the customer with further sales engagement.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Protection</span>
+              <span class="reg-ref">DPDP Act 2023 (Informed Consent)</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024 (Mis-Selling Prohibition)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-05">
+        <div class="rule-header" onclick="toggleRule('BC-05')">
+          <div class="rule-id">BC-05</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Affirmative Consent — No Pre-Ticked Options, No Passive Consent</div>
+            <div class="rule-subtitle">Every material consent must be an unambiguous affirmative action by the customer</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-hard">HARD BLOCK</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">At every consent checkpoint — purchase decision, data sharing, premium financing, nominee confirmation — the customer must take an active, unambiguous affirmative action (explicit "Yes, I confirm" or equivalent). No pre-ticked checkboxes, no "silence = consent," no "if you don't respond within X seconds we'll proceed," no "by continuing you agree." Each consent must be individually recorded with timestamp.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">RBI's Draft Directions require explicit consent, wherever required, to be based on unambiguous affirmative action. This is directly borrowed from DPDP Act 2023 consent standards and is now being applied to all sales practices by regulated entities. In an AI-agent flow, the most common consent failure modes are: timed-out defaults, bundled consent (one tick for many things), and implied consent through continued interaction. All three are prohibited.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Consent Checkpoints That Must Be Individually Gated</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Consent Point</th><th>What Must Be Confirmed</th></tr></thead>
+                <tbody>
+                  <tr><td>Data use consent</td><td>Customer consents to their data being used for insurance quoting and records</td></tr>
+                  <tr><td>Product selection</td><td>"I want to purchase [product] from [insurer] for ₹[premium]"</td></tr>
+                  <tr><td>Premium payment method</td><td>Explicit choice between financing into loan vs paying separately (Credit Life)</td></tr>
+                  <tr><td>CIS acknowledgment</td><td>"I have read and understood the Customer Information Sheet"</td></tr>
+                  <tr><td>Free-look acknowledgment</td><td>"I understand I have 30 days to cancel this policy"</td></tr>
+                  <tr><td>Final purchase</td><td>"I confirm I want to purchase this policy and authorise payment"</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block">
+              <div class="action-label">HARD BLOCK</div>
+              Agent cannot advance past any gated checkpoint without the affirmative consent signal being logged. Session timeout at a consent point = session abandoned, not consented. Agent restarts consent request on next customer interaction.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI Draft Directions on Sales Practices Feb 2026</span>
+              <span class="reg-ref">DPDP Act 2023 §7 (Consent)</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-06">
+        <div class="rule-header" onclick="toggleRule('BC-06')">
+          <div class="rule-id">BC-06</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Cryptographic Provenance — Every Material Decision Logged and Immutable</div>
+            <div class="rule-subtitle">The agent must maintain a tamper-evident audit trail of every action, decision, and consent in the session</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-monitor">MONITOR</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">Every material action the agent takes — every suitability question asked and answered, every product recommended and on what basis, every consent recorded, every tool call invoked — must be logged in a timestamped, append-only provenance record. This record must be producible to the regulator within 24 hours of a request. The record must state what the agent decided, why, and on whose authority.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">RBI FREE-AI's most important obligations include establishing a board-approved AI policy and implementing structured governance throughout the AI lifecycle, covering everything from model approval and testing to deployment and change control, with independent validation and periodic audits. The framework requires a named executive accountable for AI risk, with quarterly board reporting, and an audit and impact-assessment programme as a repeatable framework for periodic independent review. The provenance log is the operational artifact that makes all of this auditable.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Minimum Provenance Log Fields Per Session</div>
+            <div class="trigger-table-wrap">
+              <table class="trigger-table">
+                <thead><tr><th>Field</th><th>Content</th></tr></thead>
+                <tbody>
+                  <tr><td>Session ID</td><td>Unique, immutable per insurance interaction</td></tr>
+                  <tr><td>Customer ID</td><td>Masked/tokenised — no raw PII in log</td></tr>
+                  <tr><td>Agent Version</td><td>Which version of the agent ran this session</td></tr>
+                  <tr><td>Suitability inputs</td><td>All fields collected and their values</td></tr>
+                  <tr><td>Products surfaced</td><td>All products shown, ranking basis, which was selected</td></tr>
+                  <tr><td>Consent events</td><td>Each consent with timestamp and response</td></tr>
+                  <tr><td>Tool calls</td><td>Every MCP tool call with parameters and response status</td></tr>
+                  <tr><td>Hard blocks triggered</td><td>Which rules fired, what the trigger was, what the agent did</td></tr>
+                  <tr><td>Policy issued</td><td>Policy ID, insurer, product, SA, premium — or "Not Issued" with reason</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block green">
+              <div class="action-label">CONTINUOUS — MONITORING ALERT</div>
+              If provenance write fails, agent must halt the session (cannot issue without a log). Compliance dashboard alert generated. Agent operator notified.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Assurance</span>
+              <span class="reg-ref">IRDAI PPI Regs 2024 (Record-Keeping)</span>
+              <span class="reg-ref">DPDP Act 2023 (Data Processing Records)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-07">
+        <div class="rule-header" onclick="toggleRule('BC-07')">
+          <div class="rule-id">BC-07</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Human Escalation Gate — Edge Profiles Require Human Review</div>
+            <div class="rule-subtitle">AI agent must not independently handle customers who fall outside its designed operating envelope</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-conditional">CONDITIONAL</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">When the agent encounters a customer profile or request that falls outside its configured operating parameters, it must escalate to a human and cannot proceed unilaterally. The agent must have a defined escalation path, a defined escalation threshold, and must never communicate uncertainty to the customer in a way that causes distress or confusion.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">The RBI FREE-AI framework suggests a tolerant approach for low-risk AI use cases, particularly those that advance financial inclusion, but higher-stakes deployments will be subject to tighter scrutiny. Human-in-the-loop is a core governance requirement for high-stakes financial decisions. An AI agent making an underwriting decision on an edge case — and getting it wrong — is not just a bad outcome for the customer, it is a regulatory failure for the bank and insurer.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Edge Profile Triggers for Escalation</div>
+            <div class="product-split">
+              <div class="product-col">
+                <div class="product-col-label term">Term Life Escalation Triggers</div>
+                <ul>
+                  <li>Age > 60 or < 18</li>
+                  <li>Any PED declared (TL-04)</li>
+                  <li>Proposed SA > HLV ceiling (TL-03)</li>
+                  <li>Replacement case (TL-05)</li>
+                  <li>Customer expressing confusion or distress</li>
+                </ul>
+              </div>
+              <div class="product-col">
+                <div class="product-col-label credit">Credit Life Escalation Triggers</div>
+                <ul>
+                  <li>Loan amount > ₹1 Cr (insurer-specific threshold)</li>
+                  <li>Customer disputes insurer recommendation</li>
+                  <li>Multi-borrower loan (joint life required)</li>
+                  <li>NRI or foreign national borrower</li>
+                  <li>Customer asks about grievance process</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block amber">
+              <div class="action-label">CONDITIONAL — ESCALATE TO HUMAN</div>
+              Agent pauses the session, provides the customer with an estimated callback or connection time, and creates a handoff record with full session context for the human agent. Agent does NOT make a pending decision or communicate a tentative outcome.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Governance</span>
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Protection</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="BC-08">
+        <div class="rule-header" onclick="toggleRule('BC-08')">
+          <div class="rule-id">BC-08</div>
+          <div class="rule-title-block">
+            <div class="rule-title">Commission Conflict Disclosure — Recommendation Basis Must Be Auditable</div>
+            <div class="rule-subtitle">Agent's product ranking must not embed commission weighting; if it does, this must be disclosed</div>
+          </div>
+          <div class="rule-chips">
+            <span class="chip chip-both">BOTH</span>
+            <span class="chip chip-severity-conditional">CONDITIONAL</span>
+          </div>
+          <div class="rule-expand">▾</div>
+        </div>
+        <div class="rule-body">
+          <div class="rule-block">
+            <div class="rule-block-label">The Rule</div>
+            <div class="rule-statement">The criteria by which the agent ranks or recommends products must be documented, versioned, and available for audit. If commission rates from insurers are a factor in product ranking, this must be explicitly disclosed to the customer. The default position must be that ranking is based solely on suitability match, premium-to-coverage ratio, and exclusion alignment — not commission. Any deviation from this requires board-level approval and disclosure.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory Basis</div>
+            <div class="rule-desc">The 2024 EOM Regulations put more emphasis on governance, disclosure, and policyholder protection, including Board oversight and periodic reviews of commission structures. The regulations set expectations on transparency and prudence around all operating spends, including commissions. IRDAI proposed a transaction-fee model in May 2025 where fees would be directly charged to the borrower, with the objective of reducing conflicts of interest and making insurance sales more aligned with customer needs rather than the earning potential of the bank. An AI agent that embeds commission bias in its recommendation engine without disclosure is precisely the conflict of interest this regulatory trend is targeting.</div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Enforcement Action</div>
+            <div class="action-block amber">
+              <div class="action-label">CONDITIONAL — AUDIT TRIGGER</div>
+              Quarterly audit of agent recommendation logs vs commission rate data. If correlation between recommendation frequency and commission rate exceeds 0.7, compliance alert triggered and ranking algorithm must be reviewed. Any undisclosed commission-based ranking = policy violation requiring remediation and regulator disclosure.
+            </div>
+          </div>
+          <div class="rule-block">
+            <div class="rule-block-label">Regulatory References</div>
+            <div class="reg-refs">
+              <span class="reg-ref">IRDAI EOM + Commission Regs 2024</span>
+              <span class="reg-ref">IRDAI Corporate Agent Regs 2015 §Conflict of Interest</span>
+              <span class="reg-ref">RBI FREE-AI 2025 — Pillar: Governance</span>
+              <span class="reg-ref">RBI Draft Directions on Sales Practices 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ ENFORCEMENT MATRIX ============================================================ -->
+<div id="section-matrix" class="section">
+  <div class="content">
+    <div class="section-head">
+      <h2>Enforcement Matrix</h2>
+      <p>Summary of what Aarvion's runtime layer must enforce at each action boundary. This is the implementation spec — what the governance engine evaluates before each tool call is permitted to execute.</p>
+    </div>
+
+    <div class="group-label">Pre-Proposal Action Boundary (Before <code>saveProposalForm</code>)</div>
+    <table class="summary-table">
+      <thead><tr><th>Rule</th><th>Check</th><th>Products</th><th>Fail Action</th></tr></thead>
+      <tbody>
+        <tr><td>TL-01 / BC-04</td><td>AI disclosure delivered + suitability data complete</td><td>Both</td><td>Block — return error</td></tr>
+        <tr><td>TL-03</td><td>Proposed SA ≤ HLV ceiling</td><td>Term Life</td><td>Block + referral case</td></tr>
+        <tr><td>CL-01</td><td>Insurance session not linked to active loan disbursement</td><td>Credit Life</td><td>Block — decouple sessions</td></tr>
+        <tr><td>CL-04</td><td>Multiple insurer options surfaced (where available)</td><td>Credit Life</td><td>Block — surface all options</td></tr>
+        <tr><td>TL-04</td><td>PED declarations screened</td><td>Term Life</td><td>Pause + medical referral</td></tr>
+      </tbody>
+    </table>
+
+    <div class="group-label">Pre-Purchase Action Boundary (Before <code>buyProductClient</code>)</div>
+    <table class="summary-table">
+      <thead><tr><th>Rule</th><th>Check</th><th>Products</th><th>Fail Action</th></tr></thead>
+      <tbody>
+        <tr><td>BC-01</td><td>CIS delivered + acknowledged</td><td>Both</td><td>Block — cannot issue</td></tr>
+        <tr><td>TL-02</td><td>Benefit illustration delivered + acknowledged</td><td>Term Life</td><td>Block — cannot issue</td></tr>
+        <tr><td>BC-02</td><td>Free-look (30 days) disclosed + acknowledged</td><td>Both</td><td>Block — cannot issue</td></tr>
+        <tr><td>BC-03</td><td>Nominee name, relationship, DOB non-null</td><td>Both</td><td>Block — cannot issue</td></tr>
+        <tr><td>BC-05</td><td>Purchase consent affirmative + timestamped</td><td>Both</td><td>Block — cannot issue</td></tr>
+        <tr><td>CL-03</td><td>LTV check if premium financed; interest cost disclosed</td><td>Credit Life</td><td>Block (LTV) / Conditional (disclosure)</td></tr>
+        <tr><td>CL-05</td><td>SA proportionality check vs loan principal</td><td>Credit Life</td><td>Disclosure + explicit consent required</td></tr>
+        <tr><td>TL-05</td><td>Replacement detection check</td><td>Term Life</td><td>Block without comparison + acknowledgment</td></tr>
+      </tbody>
+    </table>
+
+    <div class="group-label">Post-Issuance (Continuous Monitoring)</div>
+    <table class="summary-table">
+      <thead><tr><th>Rule</th><th>Check</th><th>Products</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>BC-06</td><td>Provenance log written successfully</td><td>Both</td><td>Alert if write fails; session halts</td></tr>
+        <tr><td>BC-08</td><td>Quarterly correlation: recommendation vs commission rate</td><td>Both</td><td>Compliance alert + algorithm review if correlation > 0.7</td></tr>
+        <tr><td>BC-07</td><td>Edge profile escalations resolved by human</td><td>Both</td><td>Track escalation TAT; alert if > 24h unresolved</td></tr>
+      </tbody>
+    </table>
+
+    <hr class="rule-divider">
+
+    <div class="reg-banner" style="margin-top: 0;">
+      <strong>Implementation note for Aarvion:</strong> These rules map directly to Aarvion's seven primitives. TL-01 (suitability gate) = Authority Gate. TL-02 + BC-01 + BC-02 + BC-05 (disclosure + consent chain) = Approval Gate + Provenance. CL-01 + CL-02 (decoupling) = Policy Evaluation + Action Monitor. BC-06 (provenance log) = Cryptographic Provenance primitive. BC-07 (human escalation) = Human-in-Loop Gate. The rules above are the business policy layer that sits on top of Aarvion's technical primitive layer — exactly the distinction between what Aarvion owns and what the enterprise configures.
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('section-' + tab).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function toggleRule(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('open');
+  }
+
+  // Open first card in each section by default
+  document.addEventListener('DOMContentLoaded', () => {
+    ['TL-01', 'CL-01', 'BC-01'].forEach(id => {
+      const card = document.getElementById(id);
+      if (card) card.classList.add('open');
+    });
+  });
+</script>
+
+</body>
+</html>
