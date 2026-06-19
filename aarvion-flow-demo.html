@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aarvion — Agent Onboarding & Policy Builder (Demo)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  :root{
+    --ink:#0f1217; --paper:#f4f5f7; --panel:#ffffff;
+    --accent:#1e3a5f; --accent-2:#2d5a8f; --accent-light:#e8eef5;
+    --border:#d7d9de; --muted:#6b7280;
+    --green:#1a6b3c; --green-bg:#f0fdf4; --green-bd:#86efac;
+    --amber:#b45309; --amber-bg:#fffbeb; --amber-bd:#fcd34d;
+    --red:#991b1b; --red-bg:#fef2f2; --red-bd:#fca5a5;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+    --term:#dbeafe; --term-t:#1e3a5f; --credit:#fef3c7; --credit-t:#92400e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55}
+  code{font-family:var(--mono);font-size:.92em;background:#eef0f3;padding:1px 5px;border-radius:3px}
+  button{font-family:inherit;cursor:pointer}
+
+  /* ===== TOP BAR ===== */
+  .topbar{display:flex;align-items:center;gap:18px;background:var(--accent);color:#fff;padding:12px 28px;position:sticky;top:0;z-index:50}
+  .brand{font-family:var(--mono);font-weight:600;letter-spacing:.18em;font-size:14px}
+  .brand small{display:block;font-family:var(--sans);font-weight:300;letter-spacing:.04em;font-size:10px;opacity:.7;margin-top:2px}
+  .topbar .spacer{flex:1}
+  .topbar .pill{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.12);padding:5px 10px;border-radius:20px;opacity:.85}
+  .topbar .home-link{color:#cfe0f5;font-size:12px;text-decoration:none;border:1px solid rgba(255,255,255,.25);padding:6px 12px;border-radius:5px}
+  .topbar .home-link:hover{background:rgba(255,255,255,.1)}
+
+  /* ===== LAYOUT ===== */
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 90px}
+  .crumbs{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:18px;letter-spacing:.03em}
+  .crumbs a{color:var(--accent);text-decoration:none;cursor:pointer}
+  .crumbs a:hover{text-decoration:underline}
+  .crumbs span{color:#aab0bb}
+
+  h1.page{font-size:24px;font-weight:700;margin-bottom:6px}
+  p.lede{color:var(--muted);font-size:14px;max-width:760px;margin-bottom:26px}
+
+  .label{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
+
+  /* cards */
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;padding:11px 20px;border-radius:6px;font-weight:600;font-size:13px}
+  .btn:hover{background:var(--accent-2)}
+  .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
+  .btn.ghost:hover{background:#f7f8fa}
+  .btn.sm{padding:7px 13px;font-size:12px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-row{display:flex;gap:12px;margin-top:28px;align-items:center}
+  .btn-row .spacer{flex:1}
+
+  /* inputs */
+  input[type=text],input[type=number],textarea,select{width:100%;font-family:var(--sans);font-size:13px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+  .field .hint{font-size:11px;color:var(--muted);margin-top:4px}
+  .mono-in{font-family:var(--mono);font-size:12px}
+
+  /* chips */
+  .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;font-weight:600;letter-spacing:.04em}
+  .chip-term{background:var(--term);color:var(--term-t)} .chip-credit{background:var(--credit);color:var(--credit-t)}
+  .chip-both{background:#ecfdf5;color:var(--green)}
+  .sev-hard{background:var(--red-bg);color:var(--red)} .sev-cond{background:var(--amber-bg);color:var(--amber)} .sev-mon{background:var(--green-bg);color:var(--green)}
+  .chip-plane{background:var(--accent-light);color:var(--accent)}
+
+  /* ===== HOME / CHOOSE PATH ===== */
+  .path-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:8px}
+  .path-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:26px;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+  .path-card:hover{border-color:var(--accent);box-shadow:0 6px 22px rgba(30,58,95,.1);transform:translateY(-2px)}
+  .path-card .num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:14px}
+  .path-card h3{font-size:18px;margin-bottom:10px}
+  .path-card p{font-size:13px;color:var(--muted);line-height:1.6}
+  .path-card .go{margin-top:18px;font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600}
+
+  .agent-list{margin-top:8px}
+  .agent-row{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:12px}
+  .agent-row .av{width:40px;height:40px;border-radius:8px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:15px;flex-shrink:0}
+  .agent-row .meta{flex:1}
+  .agent-row .meta .nm{font-weight:600;font-size:14px}
+  .agent-row .meta .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .agent-row .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .st-gov{color:var(--green)} .st-gov .status-dot{background:var(--green)}
+  .st-draft{color:var(--amber)} .st-draft .status-dot{background:var(--amber)}
+
+  /* ===== STEPPER ===== */
+  .stepper{display:flex;gap:0;margin-bottom:30px;border-bottom:1px solid var(--border)}
+  .step{flex:1;padding:0 0 12px;position:relative;text-align:center}
+  .step .n{width:26px;height:26px;border-radius:50%;background:#e4e7ec;color:var(--muted);font-family:var(--mono);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+  .step .t{font-size:11px;color:var(--muted);font-weight:500}
+  .step.active .n{background:var(--accent);color:#fff}
+  .step.active .t{color:var(--accent);font-weight:600}
+  .step.done .n{background:var(--green);color:#fff}
+  .step.active::after,.step.done::after{content:'';position:absolute;bottom:-1px;left:25%;right:25%;height:2px;background:var(--accent)}
+
+  /* ===== CONNECTORS ===== */
+  .conn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+  .conn{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:8px;padding:14px 16px;background:#fff;cursor:pointer;transition:.12s}
+  .conn:hover{border-color:var(--accent-2)}
+  .conn.sel{border-color:var(--accent);background:var(--accent-light)}
+  .conn .ic{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+  .conn .nm{font-weight:600;font-size:13px}
+  .conn .sc{font-size:10px;color:var(--muted);font-family:var(--mono)}
+  .upload{border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;background:#fafbfc;margin-top:18px;cursor:pointer}
+  .upload:hover{border-color:var(--accent-2);background:#f5f7fa}
+  .upload .big{font-size:26px;margin-bottom:8px}
+  .doc-pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;margin:6px 8px 0 0}
+  .doc-pill .x{color:var(--muted);font-weight:700;cursor:pointer}
+
+  /* ===== PARSING ===== */
+  .parse-log{background:#0f1722;color:#cfe0f5;font-family:var(--mono);font-size:12px;border-radius:8px;padding:20px 22px;min-height:230px;line-height:1.9}
+  .parse-log .ln{opacity:0;animation:fade .4s forwards}
+  .parse-log .ok{color:#5ee08a} .parse-log .hl{color:#ffd24a} .parse-log .dim{color:#7a8aa0}
+  @keyframes fade{to{opacity:1}}
+  .progress{height:6px;background:#e4e7ec;border-radius:4px;overflow:hidden;margin-top:18px}
+  .progress > i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+
+  /* ===== DEDUCED ===== */
+  .deduce-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 28px}
+  .deduce{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+  .deduce .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .deduce .v{font-weight:600;font-size:14px}
+  .deduce .v small{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:3px}
+
+  .recos{display:flex;flex-direction:column;gap:14px}
+  .reco{border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden}
+  .reco-head{display:flex;align-items:center;gap:14px;padding:14px 18px;background:#fbfcfd;border-bottom:1px solid var(--border)}
+  .reco-head .pl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--accent);padding:4px 9px;border-radius:4px}
+  .reco-head .h{font-weight:600;font-size:14px;flex:1}
+  .reco-head .cnt{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .reco-body{padding:6px 18px 14px}
+  .reco-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #eef0f3}
+  .reco-item:last-child{border-bottom:none}
+  .reco-item .tog{flex-shrink:0;padding-top:2px}
+  .reco-item .main{flex:1}
+  .reco-item .main .pn{font-weight:600;font-size:13.5px;margin-bottom:3px}
+  .reco-item .main .pd{font-size:12px;color:#4b5563;line-height:1.55}
+  .reco-item .why{margin-top:8px;background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 5px 5px 0;padding:8px 12px;font-size:11.5px;line-height:1.5}
+  .reco-item .why b{color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+  .reco-item .anchors{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .anchor{font-family:var(--mono);font-size:10px;background:#eef2f7;color:var(--accent);padding:3px 8px;border-radius:4px;font-weight:500}
+
+  /* toggle */
+  .switch{position:relative;display:inline-block;width:38px;height:21px}
+  .switch input{display:none}
+  .switch .sl{position:absolute;inset:0;background:#cbd2da;border-radius:20px;transition:.18s}
+  .switch .sl:before{content:'';position:absolute;width:15px;height:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.18s}
+  .switch input:checked + .sl{background:var(--green)}
+  .switch input:checked + .sl:before{transform:translateX(17px)}
+
+  /* ===== MANUAL BUILDER ===== */
+  .builder{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:start}
+  .planes{position:sticky;top:80px}
+  .plane-nav{display:flex;flex-direction:column;gap:8px}
+  .plane-btn{text-align:left;background:#fff;border:1px solid var(--border);border-radius:8px;padding:13px 15px;cursor:pointer;transition:.12s}
+  .plane-btn:hover{border-color:var(--accent-2)}
+  .plane-btn.active{border-color:var(--accent);background:var(--accent-light)}
+  .plane-btn .pt{font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
+  .plane-btn .pd{font-size:11px;color:var(--muted);margin-top:4px}
+  .plane-btn .cb{display:inline-block;font-family:var(--mono);font-size:10px;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;margin-left:auto}
+  .plane-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+  .panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:22px 24px;margin-bottom:16px}
+  .panel > .ph{font-size:15px;font-weight:700;margin-bottom:4px}
+  .panel > .psub{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+
+  .selrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .selchip{border:1px solid var(--border);background:#fff;border-radius:7px;padding:9px 14px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.12s}
+  .selchip:hover{border-color:var(--accent-2)}
+  .selchip.sel{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600}
+  .selchip .tk{font-family:var(--mono);font-size:11px;opacity:.6}
+  .selchip.sel .tk{opacity:1}
+
+  .body-card{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden}
+  .body-card .bh{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;background:#fbfcfd}
+  .body-card .bh:hover{background:#f5f7fa}
+  .body-card .bh .badge{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-weight:600;font-size:11px;flex-shrink:0}
+  .body-card .bh .bn{font-weight:600;font-size:13.5px}
+  .body-card .bh .bj{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .body-card .bh .exp{margin-left:auto;color:#9aa1ab;transition:.2s}
+  .body-card.open .exp{transform:rotate(180deg)}
+  .body-card .bbody{display:none;padding:6px 16px 14px;border-top:1px solid var(--border)}
+  .body-card.open .bbody{display:block}
+
+  .ruleset{padding:12px 0;border-bottom:1px solid #eef0f3}
+  .ruleset:last-child{border-bottom:none}
+  .ruleset .rh{display:flex;align-items:center;gap:12px}
+  .ruleset .rh .rn{font-weight:600;font-size:13px}
+  .ruleset .rh .rd{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .ruleset .rh .opencfg{margin-left:auto}
+
+  /* rule detail (drill) */
+  .rule-card{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden}
+  .rule-card .rch{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;cursor:pointer}
+  .rule-card .rch:hover{background:#fafbfc}
+  .rule-card .rid{font-family:var(--mono);font-size:10px;font-weight:600;color:#fff;background:var(--accent);padding:3px 7px;border-radius:3px;flex-shrink:0;margin-top:2px}
+  .rule-card .rtt{flex:1}
+  .rule-card .rtt .tt{font-weight:700;font-size:13.5px;line-height:1.3}
+  .rule-card .rtt .ts{font-size:12px;color:var(--muted);margin-top:3px}
+  .rule-card .rchips{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:160px}
+  .rule-card .rbody{display:none;padding:4px 18px 20px 46px}
+  .rule-card.open .rbody{display:block}
+  .rule-card.off{opacity:.55}
+  .blk{margin:16px 0}
+  .blk .bl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .stmt{font-size:13px;font-weight:500;background:#f8f9fb;border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 4px 4px 0;line-height:1.5}
+
+  /* field config table */
+  .fld-table{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .fld-head{display:grid;grid-template-columns:30px 1.4fr 1.4fr 1.5fr 90px;gap:0;background:#f2f4f7;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .fld-head > div{padding:9px 12px}
+  .fld-row{display:grid;grid-template-columns:30px 1.4fr 1.4fr 1.5fr 90px;gap:0;border-top:1px solid #eef0f3;align-items:start}
+  .fld-row.off{background:#fafafa;opacity:.6}
+  .fld-row > div{padding:11px 12px}
+  .fld-row .canon{font-weight:600;font-size:12.5px}
+  .fld-row .canon small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+  .fld-row input{font-size:12px;padding:7px 9px}
+  .fld-row .reqtag{font-family:var(--mono);font-size:9px;color:var(--red);margin-top:5px;display:inline-block}
+  .addfield{display:flex;gap:10px;align-items:center;padding:12px;background:#fbfcfd;border-top:1px solid #eef0f3}
+  .addfield input{flex:1}
+
+  .section-tog{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:7px;margin-bottom:8px;background:#fff}
+  .section-tog.off{opacity:.55;background:#fafafa}
+  .section-tog .st-main{flex:1}
+  .section-tog .st-main .stn{font-weight:600;font-size:12.5px}
+  .section-tog .st-main .std{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .empty{padding:40px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:8px;background:#fafbfc}
+
+  /* review */
+  .spec{background:#0f1722;color:#cfe0f5;font-family:var(--mono);font-size:12px;border-radius:8px;padding:22px;line-height:1.7;overflow:auto;white-space:pre-wrap}
+  .spec .k{color:#7a8aa0} .spec .s{color:#ffd24a} .spec .g{color:#5ee08a}
+  .summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 24px}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center}
+  .stat .num{font-size:28px;font-weight:700;color:var(--accent)}
+  .stat .lab{font-size:11px;color:var(--muted);margin-top:4px}
+  .note{background:var(--accent-light);border-left:4px solid var(--accent);border-radius:0 6px 6px 0;padding:14px 18px;font-size:13px;line-height:1.6;margin-top:8px}
+  .note b{color:var(--accent)}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:13px 22px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);transition:.3s;z-index:200;opacity:0}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">AARVION<small>Runtime Governance Plane · Demo</small></div>
+  <div class="spacer"></div>
+  <span class="pill">Control Spec Builder</span>
+  <a class="home-link" onclick="go('home')">⌂ Agents</a>
+</div>
+
+<div id="app" class="wrap"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   STATE
+========================================================================= */
+const STATE = {
+  screen:'home',
+  flow:null,           // 'auto' | 'manual'
+  autoStep:0,          // 0 define, 1 source, 2 parse, 3 results
+  agent:{ name:'', desc:'', industry:'', func:'', process:'', jurisdictions:[], source:null, docs:[] },
+  // manual builder selections
+  activePlane:'domain',
+  manual:{
+    classification:{ domain:'', subfunction:'', jurisdiction:'' },
+    bodies:[],            // selected regulatory body ids
+    openBodies:[],
+    rulesetCfg:{},        // rulesetId -> {enabled}
+  },
+  ruleCfg:{},            // ruleId -> { enabled, sections:{id:bool}, fields:{ key:{enabled,alias,regex} }, customFields:[] }
+  agents:[
+    {name:'Refund Resolution Agent', sub:'Payments · CrewAI · 14 policies', status:'gov', tags:['Banking','OFAC','PCI']},
+    {name:'Claims Triage Copilot', sub:'Insurance · LangGraph · 9 policies', status:'gov', tags:['IRDAI','DPDP']},
+    {name:'KYC Onboarding Agent', sub:'Draft · source connected', status:'draft', tags:['Onboarding']},
+  ],
+};
+
+/* =========================================================================
+   STATIC LIBRARY DATA
+========================================================================= */
+const PLANES = [
+  {id:'technical',  name:'Technical',      color:'#475569', desc:'Egress · exfiltration · blast radius · rate · cost'},
+  {id:'pii',        name:'PII & Data',     color:'#7c3aed', desc:'Redaction · field blocking · output schema'},
+  {id:'compliance', name:'Compliance',     color:'#0e7490', desc:'GDPR · HIPAA · DPDP · PCI · EU AI Act · sector'},
+  {id:'jurisdictional',name:'Jurisdictional',color:'#b45309',desc:'OFAC · cross-border data flow · state regs'},
+  {id:'domain',     name:'Domain',         color:'#1a6b3c', desc:'Operational archetypes: banking, insurance, health'},
+];
+
+const CONNECTORS = [
+  {id:'gdocs',  nm:'Google Docs', sc:'OAuth · read-only', c:'#4285F4', l:'G'},
+  {id:'notion', nm:'Notion',      sc:'OAuth · scoped',    c:'#111111', l:'N'},
+  {id:'slack',  nm:'Slack',       sc:'Bot · channels',    c:'#611f69', l:'S'},
+  {id:'confl',  nm:'Confluence',  sc:'OAuth · spaces',    c:'#172B4D', l:'C'},
+  {id:'sp',     nm:'SharePoint',  sc:'Graph · sites',     c:'#038387', l:'SP'},
+  {id:'drive',  nm:'Drive',       sc:'OAuth · folders',   c:'#1FA463', l:'D'},
+];
+
+// Regulatory bodies keyed by jurisdiction relevance
+const BODIES = {
+  IRDAI:  {nm:'IRDAI',  jur:'India',  sector:'Insurance', c:'#1a6b3c'},
+  RBI:    {nm:'RBI',    jur:'India',  sector:'Banking',   c:'#1e3a5f'},
+  SEBI:   {nm:'SEBI',   jur:'India',  sector:'Securities',c:'#7c3aed'},
+  DPDP:   {nm:'DPDP',   jur:'India',  sector:'Data',      c:'#0e7490'},
+  GDPR:   {nm:'GDPR',   jur:'EU',     sector:'Data',      c:'#1d4ed8'},
+  EUAI:   {nm:'EU AI Act',jur:'EU',   sector:'AI',        c:'#b91c1c'},
+  OFAC:   {nm:'OFAC',   jur:'US',     sector:'Sanctions', c:'#991b1b'},
+  FINCEN: {nm:'FinCEN', jur:'US',     sector:'AML',       c:'#374151'},
+};
+
+// Rule sets per body (high-level — NOT detailed clause names)
+const RULESETS = {
+  IRDAI:[
+    {id:'irdai-ppi',  nm:'Protection of Policyholders’ Interests Regs 2024', rd:'Suitability, CIS, free-look, mis-selling prohibition', rules:['TL-01','TL-03','BC-01','BC-02','BC-03']},
+    {id:'irdai-ca',   nm:'Corporate Agent Regulations 2015',                  rd:'Open architecture, tied-selling prohibition',           rules:['CL-04']},
+    {id:'irdai-eom',  nm:'EOM & Commission Regulations 2024',                 rd:'Commission disclosure, conflict-of-interest',           rules:['BC-08']},
+  ],
+  RBI:[
+    {id:'rbi-freeai', nm:'FREE-AI Framework 2025',          rd:'7 Sutras, 6 Pillars — AI policy, audit, disclosure', rules:['BC-04','BC-06','BC-07']},
+    {id:'rbi-sales',  nm:'Draft Directions on Sales Practices 2026', rd:'Explicit consent, no compulsory bundling',   rules:['CL-01','BC-05']},
+    {id:'rbi-kyc',    nm:'KYC Master Direction',            rd:'Customer due diligence at onboarding',               rules:[]},
+  ],
+  SEBI:[ {id:'sebi-ia', nm:'Investment Adviser Regulations', rd:'Suitability & fiduciary duty', rules:[]} ],
+  DPDP:[ {id:'dpdp-consent', nm:'DPDP Act 2023 — Consent & Processing', rd:'Affirmative consent, purpose limitation, data records', rules:['BC-05']} ],
+  GDPR:[ {id:'gdpr-core', nm:'GDPR — Lawful Basis & Rights', rd:'Consent, DSAR, minimisation', rules:[]} ],
+  EUAI:[ {id:'euai-hr', nm:'EU AI Act — High-Risk Obligations', rd:'Transparency, human oversight, logging', rules:[]} ],
+  OFAC:[ {id:'ofac-scr', nm:'Sanctions Screening (SDN)', rd:'Block transfers to sanctioned parties / jurisdictions', rules:[]} ],
+  FINCEN:[ {id:'fincen-aml', nm:'AML / CFT Program', rd:'CDD, suspicious-activity, transaction monitoring', rules:[]} ],
+};
+
+// Deep rule definitions (the level of detail in the governance HTML)
+const RULES = {
+  'TL-01':{id:'TL-01',title:'Suitability Gate — Needs-Based Assessment Mandatory',sub:'No proposal without a complete, logged needs assessment',chip:'chip-term',sev:'sev-hard',sevtxt:'HARD BLOCK',
+    stmt:'The agent must collect, validate and record a suitability assessment — income, dependents, existing cover, stated need — before generating any quote or proposal. Any missing field = hard block.',
+    sections:[
+      {id:'s-inputs',nm:'Required suitability inputs',d:'Fields gated before proposal'},
+      {id:'s-decl',nm:'Suitability declaration logging',d:'Structured "suitable because…" reason'},
+    ],
+    fields:[
+      {key:'income',label:'Annual Income',desc:'Declared; cannot be inferred from loan amount or bank data',req:true,regex:'^[0-9]{4,9}$'},
+      {key:'dependents',label:'Financial Dependents',desc:'Count; null = block',req:true,regex:'^[0-9]{1,2}$'},
+      {key:'existing_cover',label:'Existing Life Cover',desc:'Yes/No + amount; flag if total > 20× income',req:true,regex:''},
+      {key:'protection_need',label:'Primary Protection Need',desc:'Enum: income replacement / loan cover / education / legacy',req:true,regex:''},
+      {key:'suitability_decl',label:'Suitability Declaration',desc:'Structured reason — cannot be boilerplate',req:true,regex:''},
+    ]},
+  'TL-03':{id:'TL-03',title:'Sum Assured Ceiling — Income Multiple Hard Cap',sub:'Coverage above the underwriting ceiling must be blocked & referred',chip:'chip-term',sev:'sev-hard',sevtxt:'HARD BLOCK',
+    stmt:'Compute Human Life Value from declared income and cap proposed sum assured at the insurer’s filed ceiling (≈25–30× income). Above ceiling → block and route to underwriting.',
+    sections:[ {id:'s-calc',nm:'Calculation gate',d:'SA ÷ income thresholds'} ],
+    fields:[
+      {key:'proposed_sa',label:'Proposed Sum Assured',desc:'Cap at 25× income without medical',req:true,regex:'^[0-9]{5,10}$'},
+      {key:'annual_income',label:'Annual Income',desc:'Denominator for HLV multiple',req:true,regex:'^[0-9]{4,9}$'},
+      {key:'existing_sa',label:'Existing Cover Amount',desc:'Aggregate cap at 30× income',req:false,regex:''},
+    ]},
+  'CL-01':{id:'CL-01',title:'Decoupling Gate — Credit Life ≠ Loan Condition',sub:'Insurance must never be presented as required for the loan',chip:'chip-credit',sev:'sev-hard',sevtxt:'HARD BLOCK',
+    stmt:'Prohibit any language, conditional logic or data flow presenting credit life as required for disbursement, lower rate, or faster processing. Disbursement trigger must be independent of the insurance decision.',
+    sections:[
+      {id:'s-lang',nm:'Prohibited language patterns',d:'Force-selling / bundling phrasing'},
+      {id:'s-flow',nm:'Flow & session linkage check',d:'Loan status must not gate insurance'},
+    ],
+    fields:[
+      {key:'loan_status',label:'Loan Disbursement Status',desc:'Must be confirmed/independent at insurance start',req:true,regex:''},
+      {key:'session_id',label:'Insurance Session ID',desc:'Must differ from loan session',req:true,regex:''},
+    ]},
+  'BC-01':{id:'BC-01',title:'Customer Information Sheet (CIS) Delivery Gate',sub:'No issuance without delivered + acknowledged CIS',chip:'chip-both',sev:'sev-hard',sevtxt:'HARD BLOCK',
+    stmt:'A product-specific CIS must be delivered and affirmatively acknowledged before any purchase tool is invoked. Acknowledgment must be affirmative, not a timed-out default.',
+    sections:[ {id:'s-cis',nm:'CIS content requirements',d:'Inclusions, exclusions, premium, terms'} ],
+    fields:[
+      {key:'cis_ack',label:'CIS Acknowledgment Flag',desc:'Must be TRUE in session state',req:true,regex:'^(true|false)$'},
+      {key:'cis_lang',label:'CIS Language',desc:'Local-language on request',req:false,regex:''},
+    ]},
+  'BC-05':{id:'BC-05',title:'Affirmative Consent — No Pre-Ticked / Passive Consent',sub:'Each material consent is an explicit, timestamped affirmative action',chip:'chip-both',sev:'sev-hard',sevtxt:'HARD BLOCK',
+    stmt:'At every consent checkpoint the customer must take an unambiguous affirmative action. No pre-ticked boxes, no silence-as-consent, no timed defaults. Each consent recorded with timestamp.',
+    sections:[ {id:'s-checkpoints',nm:'Gated consent checkpoints',d:'Data use, product, payment, CIS, free-look, purchase'} ],
+    fields:[
+      {key:'consent_type',label:'Consent Checkpoint',desc:'Enum of gated checkpoints',req:true,regex:''},
+      {key:'consent_ts',label:'Consent Timestamp',desc:'ISO-8601; affirmative only',req:true,regex:''},
+    ]},
+  'TL-02':{id:'TL-02',title:'Benefit Illustration Before Proposal Acceptance',sub:'CIS + customised illustration acknowledged before purchase',chip:'chip-term',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Deliver CIS + customised benefit illustration and capture explicit acknowledgment before any purchase/issuance tool call.',sections:[],fields:[]},
+  'TL-05':{id:'TL-05',title:'Replacement & Churning Detection',sub:'Flag silent replacement of an existing policy',chip:'chip-term',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Detect replacement of an existing policy; require side-by-side comparison + explicit acknowledgment before issuance.',sections:[],fields:[]},
+  'CL-04':{id:'CL-04',title:'Insurer Choice Optionality — No Tied Selling',sub:'Present multiple insurers; ranking not commission-weighted',chip:'chip-credit',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Surface multiple insurer options; ranking based on suitability, not commission. Minimum two options where available.',sections:[],fields:[]},
+  'BC-02':{id:'BC-02',title:'Free-Look Period Disclosure — 30 Days',sub:'Disclose & acknowledge 30-day free-look before issuance',chip:'chip-both',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Inform the customer of the 30-day free-look right in plain language and record acknowledgment before issuance.',sections:[],fields:[]},
+  'BC-03':{id:'BC-03',title:'Nominee Completeness Gate',sub:'Full nominee details before issuance',chip:'chip-both',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Block issuance unless nominee name, relationship and DOB are present. Minor nominee requires a trustee/appointee.',sections:[],fields:[]},
+  'BC-04':{id:'BC-04',title:'AI Disclosure to Customer',sub:'Identify as AI at session start',chip:'chip-both',sev:'sev-hard',sevtxt:'HARD BLOCK',stmt:'Disclose the agent is an AI system at session start and offer a human-advisor option before any sales interaction.',sections:[],fields:[]},
+  'BC-06':{id:'BC-06',title:'Cryptographic Provenance',sub:'Every material decision logged, tamper-evident',chip:'chip-both',sev:'sev-mon',sevtxt:'MONITOR',stmt:'Log every material action in an append-only, timestamped provenance record producible to a regulator within 24h.',sections:[],fields:[]},
+  'BC-07':{id:'BC-07',title:'Human Escalation Gate for Edge Profiles',sub:'Out-of-envelope profiles route to a human',chip:'chip-both',sev:'sev-cond',sevtxt:'CONDITIONAL',stmt:'Escalate profiles outside the configured operating envelope to a human with full context; no unilateral decision.',sections:[],fields:[]},
+  'BC-08':{id:'BC-08',title:'Commission Conflict Disclosure',sub:'Ranking basis auditable; commission weighting disclosed',chip:'chip-both',sev:'sev-cond',sevtxt:'CONDITIONAL',stmt:'Document and version ranking criteria; disclose any commission weighting. Quarterly audit vs commission correlation.',sections:[],fields:[]},
+};
+
+// Auto-discovery recommendation payload (what parsing "deduces")
+const AUTO_RECO = {
+  deduced:{ industry:'Insurance', func:'Distribution / Onboarding', process:'KYC + Policy Issuance', jurisdiction:'India (IRDAI / RBI / DPDP)' },
+  signals:['onboarding','PII / personal data','KYC','sanctions','consent','policy issuance','minor data'],
+  planes:[
+    {plane:'pii', items:[
+      {pn:'PII Redaction & Field Blocking', pd:'Mask Aadhaar, PAN, DOB, contact in agent inputs/outputs and logs.', why:'Document references “collect customer PAN, Aadhaar and date of birth during onboarding”.', anchors:['DPDP Act 2023','GDPR Art.5']},
+      {pn:'Output Schema Enforcement', pd:'Constrain agent responses to an approved schema — no free-text PII leakage.', why:'Detected unstructured customer-data handling in the proposal step.', anchors:['DPDP §8','PII Library v3']},
+    ]},
+    {plane:'jurisdictional', items:[
+      {pn:'OFAC / SDN Sanctions Screening', pd:'Screen every customer & beneficiary against sanctions lists before any transaction proceeds.', why:'Document mentions “verify the applicant” + cross-border remittance context.', anchors:['OFAC SDN','RBI KYC MD']},
+      {pn:'Cross-Border Data Flow Control', pd:'Block customer-data egress outside permitted jurisdictions.', why:'Connector data resides in EU region; customer base is India.', anchors:['DPDP §16','GDPR Ch.V']},
+    ]},
+    {plane:'compliance', items:[
+      {pn:'AML / CFT Customer Due Diligence', pd:'Enforce CDD completeness + suspicious-pattern checks at onboarding.', why:'“KYC”, “identity verification” and “risk category” appear in the onboarding flow.', anchors:['FinCEN AML','RBI KYC MD']},
+      {pn:'DPDP Affirmative Consent', pd:'Require explicit, unbundled, timestamped consent for data processing.', why:'Document describes capturing consent via a single checkbox — disallowed.', anchors:['DPDP §7','RBI Sales 2026']},
+    ]},
+    {plane:'domain', items:[
+      {pn:'Onboarding Archetype — Insurance Distribution', pd:'Loads IRDAI suitability, CIS, free-look and nominee gates for the issuance path.', why:'Process matched to the Insurance Onboarding operational archetype.', anchors:['IRDAI PPI 2024','Domain Library']},
+    ]},
+    {plane:'technical', items:[
+      {pn:'Egress & Exfiltration Guard', pd:'Cap blast radius; rate-limit tool calls; block bulk customer-record export.', why:'Agent has write access to the policy core — high blast radius.', anchors:['Technical Library v5']},
+    ]},
+  ],
+};
+
+/* =========================================================================
+   HELPERS
+========================================================================= */
+const $ = (id)=>document.getElementById(id);
+function go(s){ STATE.screen=s; render(); window.scrollTo(0,0); }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function ensureRuleCfg(id){
+  if(STATE.ruleCfg[id]) return STATE.ruleCfg[id];
+  const r=RULES[id];
+  const cfg={ enabled:true, sections:{}, fields:{}, customFields:[] };
+  (r.sections||[]).forEach(s=>cfg.sections[s.id]=true);
+  (r.fields||[]).forEach(f=>cfg.fields[f.key]={enabled:true, alias:'', regex:f.regex||''});
+  STATE.ruleCfg[id]=cfg; return cfg;
+}
+function appliedRuleIds(){
+  // rules whose ruleset is selected & enabled, and rule enabled
+  const ids=[];
+  STATE.manual.bodies.forEach(b=>(RULESETS[b]||[]).forEach(rs=>{
+    const en = STATE.manual.rulesetCfg[rs.id]?.enabled;
+    if(en) rs.rules.forEach(rid=>{ if(STATE.ruleCfg[rid]?.enabled!==false) ids.push(rid); });
+  }));
+  return [...new Set(ids)];
+}
+
+/* =========================================================================
+   RENDER ROUTER
+========================================================================= */
+function render(){
+  const app=$('app');
+  if(STATE.screen==='home')   return app.innerHTML=viewHome();
+  if(STATE.screen==='path')   return app.innerHTML=viewPath();
+  if(STATE.screen==='auto')   { app.innerHTML=viewAuto(); if(STATE.autoStep===2) runParse(); return; }
+  if(STATE.screen==='mdefine')return app.innerHTML=viewManualDefine();
+  if(STATE.screen==='builder')return app.innerHTML=viewBuilder();
+  if(STATE.screen==='review') return app.innerHTML=viewReview();
+}
+
+/* ---------- HOME ---------- */
+function viewHome(){
+  return `
+  <h1 class="page">Agents under governance</h1>
+  <p class="lede">Every agent your organization runs is registered here. Aarvion sits in the action path and evaluates each consequential action against the agent’s signed control spec — Pass, Park, or Block.</p>
+  <div class="btn-row" style="margin-top:0;margin-bottom:22px">
+    <button class="btn" onclick="startOnboard()">+ Onboard agent</button>
+    <span style="font-size:12px;color:var(--muted)">${STATE.agents.length} agents · 2 governed · 1 draft</span>
+  </div>
+  <div class="agent-list">
+    ${STATE.agents.map(a=>`
+      <div class="agent-row">
+        <div class="av">${esc(a.name.split(' ').map(w=>w[0]).slice(0,2).join(''))}</div>
+        <div class="meta"><div class="nm">${esc(a.name)}</div><div class="sub">${esc(a.sub)}</div></div>
+        <div class="tags">${a.tags.map(t=>`<span class="chip chip-plane">${esc(t)}</span>`).join('')}</div>
+        <div class="st-${a.status}" style="font-size:12px;font-weight:600;width:90px;text-align:right"><span class="status-dot"></span>${a.status==='gov'?'Governed':'Draft'}</div>
+      </div>`).join('')}
+  </div>`;
+}
+function startOnboard(){ STATE.flow=null; STATE.autoStep=0; go('path'); }
+
+/* ---------- CHOOSE PATH ---------- */
+function viewPath(){
+  return `
+  <div class="crumbs"><a onclick="go('home')">Agents</a> <span>/</span> Onboard agent</div>
+  <h1 class="page">How do you want to onboard this agent?</h1>
+  <p class="lede">Both paths produce the same artifact: a signed, versioned control spec. Choose how you want to get there.</p>
+  <div class="path-grid">
+    <div class="path-card" onclick="chooseFlow('auto')">
+      <div class="num">PATH 1 · RECOMMENDED FOR PRODUCT TEAMS</div>
+      <h3>Point us at the agent’s documentation</h3>
+      <p>Upload a Word doc or connect Google Docs, Notion, Slack, Confluence or SharePoint. Aarvion parses what the agent does, deduces its industry, function, process and jurisdiction, and <b>auto-applies the policies it legally requires</b> across all five planes — so a team with no compliance grounding still ships a correctly-governed agent.</p>
+      <div class="go">Parse docs → auto-policy →</div>
+    </div>
+    <div class="path-card" onclick="chooseFlow('manual')">
+      <div class="num">PATH 2 · FOR COMPLIANCE / RISK TEAMS</div>
+      <h3>Register the agent and build the policy myself</h3>
+      <p>Classify the agent, then drill down: plane → jurisdiction → regulatory bodies (IRDAI, RBI, SEBI, GDPR, DPDP, EU AI Act, OFAC) → rule sets → individual rules → field-level config. Map every regulated field to <b>your own nomenclature and regex</b>, and add or remove fields, sections and sub-rules.</p>
+      <div class="go">Open policy builder →</div>
+    </div>
+  </div>`;
+}
+function chooseFlow(f){ STATE.flow=f; if(f==='auto'){STATE.autoStep=0; go('auto');} else { go('mdefine'); } }
+
+/* =========================================================================
+   PATH 1 — AUTO (DOC DRIVEN)
+========================================================================= */
+function autoStepper(){
+  const steps=['Define agent','Connect source','Parse','Auto-policy'];
+  return `<div class="stepper">${steps.map((s,i)=>`
+    <div class="step ${i===STATE.autoStep?'active':''} ${i<STATE.autoStep?'done':''}"><div class="n">${i<STATE.autoStep?'✓':i+1}</div><div class="t">${s}</div></div>`).join('')}</div>`;
+}
+function viewAuto(){
+  let body='';
+  if(STATE.autoStep===0) body=autoDefine();
+  if(STATE.autoStep===1) body=autoSource();
+  if(STATE.autoStep===2) body=autoParse();
+  if(STATE.autoStep===3) body=autoResults();
+  return `<div class="crumbs"><a onclick="go('home')">Agents</a> <span>/</span> <a onclick="go('path')">Onboard</a> <span>/</span> Doc-driven</div>${autoStepper()}${body}`;
+}
+function autoDefine(){
+  return `
+  <h1 class="page">Define the agent</h1>
+  <p class="lede">A short identity for the agent. Everything else is deduced from its documentation in the next steps.</p>
+  <div class="grid2">
+    <div class="card" style="padding:22px">
+      <div class="field"><label>Agent name</label><input type="text" id="ad-name" placeholder="e.g. KYC Onboarding Agent" value="${esc(STATE.agent.name)}"></div>
+      <div class="field"><label>What is it for? (one line)</label><input type="text" id="ad-desc" placeholder="e.g. Onboards retail customers and issues policies" value="${esc(STATE.agent.desc)}"></div>
+      <div class="field"><label>Agent framework</label>
+        <select id="ad-fw"><option>LangGraph</option><option>CrewAI</option><option>AutoGen</option><option>Custom / MCP-native</option></select></div>
+    </div>
+    <div class="card" style="padding:22px;background:#fbfcfd">
+      <div class="label">What happens next</div>
+      <p style="font-size:13px;color:#4b5563;line-height:1.7">You’ll give Aarvion a <b>hook</b> to the agent’s documentation — an uploaded file or a connector. Aarvion reads the docs, identifies the operations the agent performs (onboarding, PII handling, payments…), and maps each to the policies it requires. You review and confirm; nothing is applied silently.</p>
+      <div class="note" style="margin-top:18px">This is grounded in Aarvion’s codified <b>Domain + Regulatory + Compliance</b> libraries — not a one-off LLM guess. Each recommendation carries a regulatory anchor.</div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn ghost" onclick="go('path')">← Back</button><div class="spacer"></div>
+    <button class="btn" onclick="saveAutoDefine()">Continue →</button></div>`;
+}
+function saveAutoDefine(){
+  STATE.agent.name=$('ad-name').value.trim()||'Untitled Agent';
+  STATE.agent.desc=$('ad-desc').value.trim();
+  STATE.autoStep=1; render(); window.scrollTo(0,0);
+}
+function autoSource(){
+  return `
+  <h1 class="page">Connect the documentation source</h1>
+  <p class="lede">Give the system the hook from where to pick up the docs. Connect a source or upload directly — read-only, scoped, OAuth.</p>
+  <div class="label">Pull via connector</div>
+  <div class="conn-grid">
+    ${CONNECTORS.map(c=>`
+      <div class="conn ${STATE.agent.source===c.id?'sel':''}" onclick="pickConn('${c.id}')">
+        <div class="ic" style="background:${c.c}">${c.l}</div>
+        <div><div class="nm">${c.nm}</div><div class="sc">${c.sc}</div></div>
+      </div>`).join('')}
+  </div>
+  <div class="upload" onclick="mockUpload()">
+    <div class="big">⬆</div>
+    <div style="font-weight:600">Or upload Word / PDF / Markdown</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Drag a file here or click to browse</div>
+  </div>
+  <div id="doc-list" style="margin-top:14px">${renderDocs()}</div>
+  <div class="btn-row"><button class="btn ghost" onclick="autoBack(0)">← Back</button><div class="spacer"></div>
+    <button class="btn" id="parse-btn" ${STATE.agent.docs.length||STATE.agent.source?'':'disabled'} onclick="STATE.autoStep=2;render();">Parse documentation →</button></div>`;
+}
+function renderDocs(){
+  if(!STATE.agent.docs.length) return '';
+  return `<div class="label">Picked up</div>${STATE.agent.docs.map((d,i)=>`<span class="doc-pill">📄 ${esc(d)} <span class="x" onclick="rmDoc(${i})">✕</span></span>`).join('')}`;
+}
+function pickConn(id){
+  STATE.agent.source=id;
+  const src={gdocs:'Onboarding_Flow_Spec.gdoc',notion:'KYC Agent — PRD (Notion)',slack:'#kyc-agent thread export',confl:'KYC Runbook (Confluence)',sp:'Onboarding Policy.docx',drive:'Agent Requirements.docx'}[id];
+  if(!STATE.agent.docs.includes(src)) STATE.agent.docs.push(src);
+  render();
+}
+function mockUpload(){ const f='Agent_Onboarding_Requirements.docx'; if(!STATE.agent.docs.includes(f)) STATE.agent.docs.push(f); render(); }
+function rmDoc(i){ STATE.agent.docs.splice(i,1); render(); }
+function autoBack(s){ STATE.autoStep=s; render(); window.scrollTo(0,0); }
+
+function autoParse(){
+  return `
+  <h1 class="page">Reading the documentation…</h1>
+  <p class="lede">Aarvion is parsing <b>${esc(STATE.agent.docs[0]||'the connected source')}</b> to understand what this agent does and which controls it legally requires.</p>
+  <div class="parse-log" id="plog"></div>
+  <div class="progress"><i id="pbar"></i></div>`;
+}
+function runParse(){
+  const lines=[
+    {t:'<span class="dim">›</span> connecting to source · read-only scope ……… <span class="ok">ok</span>'},
+    {t:'<span class="dim">›</span> extracting text · 14 pages · 3,180 tokens'},
+    {t:'<span class="dim">›</span> classifying operations …'},
+    {t:'   detected operation: <span class="hl">customer onboarding</span>'},
+    {t:'   detected data class: <span class="hl">PII — PAN, Aadhaar, DOB</span>'},
+    {t:'   detected operation: <span class="hl">KYC / identity verification</span>'},
+    {t:'   detected operation: <span class="hl">policy issuance</span> (write to core)'},
+    {t:'   detected signal: <span class="hl">consent capture</span> · single-checkbox pattern'},
+    {t:'<span class="dim">›</span> resolving jurisdiction · entity=India · regs=<span class="hl">IRDAI · RBI · DPDP</span>'},
+    {t:'<span class="dim">›</span> matching against Domain + Regulatory + Compliance libraries …'},
+    {t:'   ↳ 5 planes engaged · 8 policies required'},
+    {t:'<span class="ok">✓ analysis complete — review recommended policies</span>'},
+  ];
+  const log=$('plog'), bar=$('pbar'); if(!log) return; log.innerHTML='';
+  lines.forEach((l,i)=>setTimeout(()=>{
+    const d=document.createElement('div'); d.className='ln'; d.innerHTML=l.t; log.appendChild(d);
+    bar.style.width=Math.round((i+1)/lines.length*100)+'%';
+    if(i===lines.length-1) setTimeout(()=>{STATE.autoStep=3;render();window.scrollTo(0,0);},700);
+  }, i*420));
+}
+function autoResults(){
+  const d=AUTO_RECO.deduced;
+  const planeName=id=>PLANES.find(p=>p.id===id);
+  let count=0; AUTO_RECO.planes.forEach(p=>count+=p.items.length);
+  return `
+  <h1 class="page">Here’s what this agent is — and what it needs</h1>
+  <p class="lede">Deduced from the documentation. Every policy below is mapped to a regulatory anchor from Aarvion’s libraries. Toggle anything off, then apply.</p>
+
+  <div class="label">Deduced profile</div>
+  <div class="deduce-grid">
+    <div class="deduce"><div class="k">Industry</div><div class="v">${d.industry}</div></div>
+    <div class="deduce"><div class="k">Function</div><div class="v">${d.func}</div></div>
+    <div class="deduce"><div class="k">Process</div><div class="v">${d.process}</div></div>
+    <div class="deduce"><div class="k">Jurisdiction</div><div class="v">${d.jurisdiction}</div></div>
+  </div>
+
+  <div class="label">Signals detected in the document</div>
+  <div class="selrow" style="margin-bottom:26px">${AUTO_RECO.signals.map(s=>`<span class="chip chip-plane">${s}</span>`).join('')}</div>
+
+  <div class="label">Auto-recommended policies · ${count} across 5 planes</div>
+  <div class="recos">
+    ${AUTO_RECO.planes.map(p=>{const pl=planeName(p.plane);return `
+      <div class="reco">
+        <div class="reco-head">
+          <span class="pl" style="background:${pl.color}">${pl.name}</span>
+          <span class="h">${pl.desc}</span>
+          <span class="cnt">${p.items.length} ${p.items.length>1?'policies':'policy'}</span>
+        </div>
+        <div class="reco-body">
+          ${p.items.map((it,idx)=>`
+            <div class="reco-item">
+              <div class="tog"><label class="switch"><input type="checkbox" checked onchange="this.closest('.reco-item').classList.toggle('off',!this.checked)"><span class="sl"></span></label></div>
+              <div class="main">
+                <div class="pn">${it.pn}</div>
+                <div class="pd">${it.pd}</div>
+                <div class="why"><b>Why it was added</b><br>${it.why}</div>
+                <div class="anchors">${it.anchors.map(a=>`<span class="anchor">${a}</span>`).join('')}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;}).join('')}
+  </div>
+
+  <div class="note" style="margin-top:24px"><b>This is the point of the product.</b> A product team that has never heard of OFAC or DPDP just learned exactly which controls their onboarding agent legally needs — and why — because Aarvion mapped the document against codified Domain + Regulatory + Compliance libraries, not an LLM hunch.</div>
+
+  <div class="btn-row"><button class="btn ghost" onclick="autoBack(1)">← Change source</button><div class="spacer"></div>
+    <button class="btn ghost" onclick="go('builder')">Fine-tune in builder</button>
+    <button class="btn" onclick="finish('auto')">Apply ${count} policies & sign →</button></div>`;
+}
+
+/* =========================================================================
+   PATH 2 — MANUAL
+========================================================================= */
+function viewManualDefine(){
+  const ind=['Insurance','Banking','Securities / Capital Markets','Healthcare','Aviation'];
+  const fn=['Distribution / Onboarding','Underwriting','Claims','Payments','Customer Service','Trading'];
+  const jur=['India','European Union','United States','United Kingdom','Singapore'];
+  return `
+  <div class="crumbs"><a onclick="go('home')">Agents</a> <span>/</span> <a onclick="go('path')">Onboard</a> <span>/</span> Manual</div>
+  <h1 class="page">Register the agent</h1>
+  <p class="lede">Classify the agent so the builder can show you the right jurisdictions, regulatory bodies and operational archetypes.</p>
+  <div class="grid2">
+    <div class="card" style="padding:22px">
+      <div class="field"><label>Agent name</label><input type="text" id="m-name" placeholder="e.g. Claims Triage Copilot" value="${esc(STATE.agent.name)}"></div>
+      <div class="field"><label>Industry / Domain</label><select id="m-ind">${ind.map(x=>`<option ${STATE.manual.classification.domain===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Function / Sub-function</label><select id="m-fn">${fn.map(x=>`<option ${STATE.manual.classification.subfunction===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="field"><label>Primary jurisdiction</label><select id="m-jur">${jur.map(x=>`<option ${STATE.manual.classification.jurisdiction===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="card" style="padding:22px;background:#fbfcfd">
+      <div class="label">The five policy planes</div>
+      ${PLANES.map(p=>`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">
+        <span class="plane-dot" style="background:${p.color};margin-top:5px"></span>
+        <div><div style="font-weight:600;font-size:13px">${p.name}</div><div style="font-size:11.5px;color:var(--muted)">${p.desc}</div></div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn ghost" onclick="go('path')">← Back</button><div class="spacer"></div>
+    <button class="btn" onclick="saveManualDefine()">Open policy builder →</button></div>`;
+}
+function saveManualDefine(){
+  STATE.agent.name=$('m-name').value.trim()||'Untitled Agent';
+  STATE.manual.classification={ domain:$('m-ind').value, subfunction:$('m-fn').value, jurisdiction:$('m-jur').value };
+  STATE.activePlane='domain';
+  go('builder');
+}
+
+/* ---------- BUILDER ---------- */
+function viewBuilder(){
+  return `
+  <div class="crumbs"><a onclick="go('home')">Agents</a> <span>/</span> ${esc(STATE.agent.name||'Agent')} <span>/</span> Policy builder</div>
+  <h1 class="page" style="margin-bottom:4px">Policy builder · ${esc(STATE.agent.name||'Agent')}</h1>
+  <p class="lede" style="margin-bottom:20px">${esc(STATE.manual.classification.domain||'Insurance')} · ${esc(STATE.manual.classification.subfunction||'Onboarding')} · ${esc(STATE.manual.classification.jurisdiction||'India')}</p>
+  <div class="builder">
+    <div class="planes"><div class="label">Policy planes</div><div class="plane-nav">${PLANES.map(p=>{
+      const cnt=planeAppliedCount(p.id);
+      return `<button class="plane-btn ${STATE.activePlane===p.id?'active':''}" onclick="setPlane('${p.id}')">
+        <div class="pt"><span class="plane-dot" style="background:${p.color}"></span>${p.name}${cnt?`<span class="cb">${cnt}</span>`:''}</div>
+        <div class="pd">${p.desc}</div></button>`;}).join('')}</div>
+      <button class="btn" style="width:100%;margin-top:18px;justify-content:center" onclick="go('review')">Review & sign spec →</button>
+    </div>
+    <div class="builder-main">${planePanel(STATE.activePlane)}</div>
+  </div>`;
+}
+function setPlane(p){ STATE.activePlane=p; render(); }
+function planeAppliedCount(planeId){
+  // count selected bodies' enabled rulesets (only domain/compliance/jurisdictional carry rule bodies in this demo)
+  if(['domain','compliance','jurisdictional'].includes(planeId)){
+    let c=0; STATE.manual.bodies.forEach(b=>(RULESETS[b]||[]).forEach(rs=>{if(STATE.manual.rulesetCfg[rs.id]?.enabled)c++;}));
+    return planeId==='domain'?c:0; // show aggregate on domain to keep demo legible
+  }
+  return 0;
+}
+
+function planePanel(planeId){
+  const p=PLANES.find(x=>x.id===planeId);
+  if(['technical','pii'].includes(planeId)){
+    return `<div class="panel"><div class="ph">${p.name} plane</div><div class="psub">${p.desc}</div>
+      <div class="empty">In this demo, deep rule-body configuration is shown on the <b>Domain</b> plane.<br>The ${p.name} plane ships from Aarvion’s Layer-0 library (egress, redaction, rate, cost) and is configured the same way.</div></div>`;
+  }
+  // domain / compliance / jurisdictional — full drill
+  return `
+  <div class="panel">
+    <div class="ph">1 · Jurisdiction & sub-function</div>
+    <div class="psub">Scope the regulatory surface for this plane.</div>
+    <div class="selrow">
+      ${['India','EU','US','UK'].map(j=>`<div class="selchip ${STATE.manual.classification.jurisdiction===jLong(j)?'sel':''}" onclick="setJur('${j}')"><span class="tk">◷</span>${j}</div>`).join('')}
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ph">2 · Applicable regulatory bodies</div>
+    <div class="psub">Select which regulators apply. These are bodies — not individual rule names.</div>
+    <div class="selrow">
+      ${Object.keys(BODIES).map(b=>{const B=BODIES[b];const sel=STATE.manual.bodies.includes(b);
+        return `<div class="selchip ${sel?'sel':''}" onclick="toggleBody('${b}')"><span class="tk">${sel?'✓':'+'}</span>${B.nm} <span class="tk">· ${B.jur}</span></div>`;}).join('')}
+    </div>
+  </div>
+  ${STATE.manual.bodies.length?`
+  <div class="panel">
+    <div class="ph">3 · Rule sets</div>
+    <div class="psub">Each body expands into its rule sets. Enable a set, then drill into individual rules to configure fields.</div>
+    ${STATE.manual.bodies.map(b=>bodyCard(b)).join('')}
+  </div>`:`<div class="panel"><div class="empty">Select one or more regulatory bodies above to load their rule sets.</div></div>`}
+  `;
+}
+function jLong(short){return {India:'India',EU:'European Union',US:'United States',UK:'United Kingdom'}[short]||short;}
+function setJur(j){ STATE.manual.classification.jurisdiction=jLong(j); render(); }
+function toggleBody(b){
+  const i=STATE.manual.bodies.indexOf(b);
+  if(i>=0){STATE.manual.bodies.splice(i,1);} else {STATE.manual.bodies.push(b); if(!STATE.manual.openBodies.includes(b))STATE.manual.openBodies.push(b);}
+  render();
+}
+function bodyCard(b){
+  const B=BODIES[b]; const open=STATE.manual.openBodies.includes(b);
+  const sets=RULESETS[b]||[];
+  return `
+  <div class="body-card ${open?'open':''}">
+    <div class="bh" onclick="toggleOpenBody('${b}')">
+      <div class="badge" style="background:${B.c}">${B.nm.slice(0,2).toUpperCase()}</div>
+      <div><div class="bn">${B.nm}</div><div class="bj">${B.jur} · ${B.sector} · ${sets.length} rule set${sets.length!==1?'s':''}</div></div>
+      <div class="exp">▾</div>
+    </div>
+    <div class="bbody">
+      ${sets.map(rs=>{
+        const en=STATE.manual.rulesetCfg[rs.id]?.enabled||false;
+        return `<div class="ruleset">
+          <div class="rh">
+            <label class="switch"><input type="checkbox" ${en?'checked':''} onchange="toggleRuleset('${rs.id}')"><span class="sl"></span></label>
+            <div><div class="rn">${rs.nm}</div><div class="rd">${rs.rd}</div></div>
+            ${rs.rules.length?`<button class="btn ghost sm opencfg" onclick="openRuleset('${b}','${rs.id}')">${en?'Configure '+rs.rules.length+' rules →':'Enable to configure'}</button>`:`<span class="rd opencfg" style="font-family:var(--mono)">library-managed</span>`}
+          </div>
+          ${(en && STATE.manual.rulesetCfg[rs.id]?.open && rs.rules.length)?`<div style="margin-top:14px">${rs.rules.map(rid=>ruleCard(rid)).join('')}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+function toggleOpenBody(b){ const i=STATE.manual.openBodies.indexOf(b); if(i>=0)STATE.manual.openBodies.splice(i,1); else STATE.manual.openBodies.push(b); render(); }
+function toggleRuleset(id){
+  const cur=STATE.manual.rulesetCfg[id]||{enabled:false,open:false};
+  cur.enabled=!cur.enabled; if(cur.enabled&&cur.open===undefined)cur.open=true;
+  STATE.manual.rulesetCfg[id]=cur; render();
+}
+function openRuleset(b,id){
+  const cur=STATE.manual.rulesetCfg[id]||{enabled:true};
+  cur.open=!cur.open; STATE.manual.rulesetCfg[id]=cur; render();
+}
+
+/* ---------- RULE CARD (deepest detail) ---------- */
+function ruleCard(rid){
+  const r=RULES[rid]; if(!r) return '';
+  const cfg=ensureRuleCfg(rid);
+  const open=cfg._open;
+  return `
+  <div class="rule-card ${open?'open':''} ${cfg.enabled?'':'off'}">
+    <div class="rch" onclick="toggleRuleOpen('${rid}')">
+      <span class="rid">${r.id}</span>
+      <div class="rtt"><div class="tt">${r.title}</div><div class="ts">${r.sub}</div></div>
+      <div class="rchips">
+        <label class="switch" onclick="event.stopPropagation()"><input type="checkbox" ${cfg.enabled?'checked':''} onchange="toggleRuleEnabled('${rid}')"><span class="sl"></span></label>
+        <span class="chip ${r.chip}">${r.chip==='chip-term'?'TERM':r.chip==='chip-credit'?'CREDIT':'BOTH'}</span>
+        <span class="chip ${r.sev}">${r.sevtxt}</span>
+      </div>
+    </div>
+    <div class="rbody">
+      <div class="blk"><div class="bl">The rule</div><div class="stmt">${r.stmt}</div></div>
+
+      ${(r.sections&&r.sections.length)?`<div class="blk"><div class="bl">Sections / sub-rules <span style="color:#9aa1ab;text-transform:none;letter-spacing:0">— toggle to include or exclude</span></div>
+        ${r.sections.map(s=>{const on=cfg.sections[s.id]!==false;return `
+          <div class="section-tog ${on?'':'off'}">
+            <label class="switch"><input type="checkbox" ${on?'checked':''} onchange="toggleSection('${rid}','${s.id}')"><span class="sl"></span></label>
+            <div class="st-main"><div class="stn">${s.nm}</div><div class="std">${s.d}</div></div>
+          </div>`;}).join('')}
+      </div>`:''}
+
+      ${(r.fields&&r.fields.length)?`<div class="blk"><div class="bl">Field mapping <span style="color:#9aa1ab;text-transform:none;letter-spacing:0">— map each regulated field to your nomenclature & validation</span></div>
+        <div class="fld-table">
+          <div class="fld-head"><div></div><div>Regulated field</div><div>Your field name</div><div>Validation (regex)</div><div>Include</div></div>
+          ${r.fields.map(f=>{const fc=cfg.fields[f.key];const on=fc.enabled;return `
+            <div class="fld-row ${on?'':'off'}">
+              <div></div>
+              <div class="canon">${f.label}<small>${f.desc}</small>${f.req?'<span class="reqtag">REQUIRED</span>':''}</div>
+              <div><input type="text" placeholder="${f.label.toLowerCase()}" value="${esc(fc.alias)}" oninput="setAlias('${rid}','${f.key}',this.value)"></div>
+              <div><input type="text" class="mono-in" placeholder="(none)" value="${esc(fc.regex)}" oninput="setRegex('${rid}','${f.key}',this.value)"></div>
+              <div style="display:flex;justify-content:center;padding-top:13px"><label class="switch"><input type="checkbox" ${on?'checked':''} onchange="toggleField('${rid}','${f.key}')"><span class="sl"></span></label></div>
+            </div>`;}).join('')}
+          ${cfg.customFields.map((cf,i)=>`
+            <div class="fld-row">
+              <div></div>
+              <div class="canon" style="color:var(--accent)">${esc(cf.label)||'Custom field'}<small>Added by your team</small></div>
+              <div><input type="text" value="${esc(cf.alias)}" oninput="setCustom('${rid}',${i},'alias',this.value)"></div>
+              <div><input type="text" class="mono-in" value="${esc(cf.regex)}" oninput="setCustom('${rid}',${i},'regex',this.value)"></div>
+              <div style="display:flex;justify-content:center;padding-top:11px"><button class="btn ghost sm" onclick="rmCustom('${rid}',${i})">Remove</button></div>
+            </div>`).join('')}
+          <div class="addfield">
+            <input type="text" id="cf-${rid}" placeholder="+ Add a field your agent collects that the regulator doesn’t name (e.g. ‘middle name’)">
+            <button class="btn sm" onclick="addCustom('${rid}')">Add field</button>
+          </div>
+        </div>
+      </div>`:`<div class="blk"><div class="empty" style="padding:18px">No configurable fields — this rule is gated on session state / flow, not on a customer field. Section toggles above still apply.</div></div>`}
+    </div>
+  </div>`;
+}
+function toggleRuleOpen(rid){ const c=ensureRuleCfg(rid); c._open=!c._open; render(); }
+function toggleRuleEnabled(rid){ const c=ensureRuleCfg(rid); c.enabled=!c.enabled; render(); }
+function toggleSection(rid,sid){ const c=ensureRuleCfg(rid); c.sections[sid]=!(c.sections[sid]!==false); render(); }
+function toggleField(rid,key){ const c=ensureRuleCfg(rid); c.fields[key].enabled=!c.fields[key].enabled; render(); }
+function setAlias(rid,key,v){ ensureRuleCfg(rid).fields[key].alias=v; }
+function setRegex(rid,key,v){ ensureRuleCfg(rid).fields[key].regex=v; }
+function addCustom(rid){ const inp=$('cf-'+rid); const v=inp.value.trim(); if(!v)return; ensureRuleCfg(rid).customFields.push({label:v,alias:'',regex:''}); render(); }
+function rmCustom(rid,i){ ensureRuleCfg(rid).customFields.splice(i,1); render(); }
+function setCustom(rid,i,k,v){ ensureRuleCfg(rid).customFields[i][k]=v; }
+
+/* =========================================================================
+   REVIEW & SIGN
+========================================================================= */
+function viewReview(){
+  const fromAuto = STATE.flow==='auto';
+  let policyCount, planeCount, fieldCount=0, bodyList;
+  if(fromAuto){
+    policyCount=0; AUTO_RECO.planes.forEach(p=>policyCount+=p.items.length); planeCount=5;
+    bodyList=['IRDAI','RBI','DPDP','OFAC','FinCEN'];
+  } else {
+    const rids=appliedRuleIds(); policyCount=rids.length;
+    rids.forEach(r=>{const c=STATE.ruleCfg[r];if(c){Object.values(c.fields||{}).forEach(f=>{if(f.enabled)fieldCount++;});fieldCount+=(c.customFields||[]).length;}});
+    planeCount=new Set(STATE.manual.bodies.map(()=> 1)).size?3:0;
+    bodyList=STATE.manual.bodies.map(b=>BODIES[b].nm);
+    planeCount=STATE.manual.bodies.length?Math.min(3,1+ (STATE.manual.bodies.length>1?1:0)+1):0;
+  }
+  const back = fromAuto?`<button class="btn ghost" onclick="STATE.autoStep=3;go('auto')">← Back</button>`:`<button class="btn ghost" onclick="go('builder')">← Back to builder</button>`;
+  return `
+  <div class="crumbs"><a onclick="go('home')">Agents</a> <span>/</span> ${esc(STATE.agent.name||'Agent')} <span>/</span> Review & sign</div>
+  <h1 class="page">Review & sign the control spec</h1>
+  <p class="lede">This is the artifact that gets committed to your Git, versioned and hot-reloaded into the Aarvion runtime. The customer keeps it either way — zero lock-in.</p>
+  <div class="summary-strip">
+    <div class="stat"><div class="num">${policyCount}</div><div class="lab">Policies applied</div></div>
+    <div class="stat"><div class="num">${planeCount}</div><div class="lab">Planes engaged</div></div>
+    <div class="stat"><div class="num">${bodyList.length}</div><div class="lab">Regulatory bodies</div></div>
+    <div class="stat"><div class="num">${fromAuto?'auto':fieldCount}</div><div class="lab">${fromAuto?'Discovery mode':'Fields mapped'}</div></div>
+  </div>
+  <div class="grid2" style="align-items:start">
+    <div>
+      <div class="label">Signed control spec (preview)</div>
+      <div class="spec">${specPreview(fromAuto,bodyList,policyCount)}</div>
+    </div>
+    <div>
+      <div class="label">What this means at runtime</div>
+      <div class="card" style="padding:20px">
+        <p style="font-size:13px;color:#374151;line-height:1.7">Once signed, every consequential action this agent attempts — a <code>saveProposalForm</code> or <code>buyProductClient</code> call — is evaluated in-line against this spec at sub-5ms p99:</p>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px;align-items:center"><span class="chip sev-mon" style="width:60px;justify-content:center">PASS</span><span style="font-size:12.5px">Within authority — proceeds, provenance recorded.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="chip sev-cond" style="width:60px;justify-content:center">PARK</span><span style="font-size:12.5px">Conditional — routed to an approver with full context.</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span class="chip sev-hard" style="width:60px;justify-content:center">BLOCK</span><span style="font-size:12.5px">Hard rule fired — stopped, structured reason to the agent.</span></div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:16px">Spec is <b>signed + versioned</b>. Any future amendment is a diff your CRO/CISO reviews like code — and the field aliases & regex you set here travel with it.</div>
+    </div>
+  </div>
+  <div class="btn-row">${back}<div class="spacer"></div>
+    <button class="btn" onclick="finish('${fromAuto?'auto':'manual'}')">Sign & deploy spec →</button></div>`;
+}
+function specPreview(fromAuto,bodyList,count){
+  const c='<span class="k">';
+  return [
+    `${c}agent:</span>        "<span class="s">${esc(STATE.agent.name||'Agent')}</span>"`,
+    `${c}version:</span>      <span class="s">v1.0.0</span>`,
+    `${c}origin:</span>       <span class="s">${fromAuto?'doc-discovery':'manual-builder'}</span>`,
+    `${c}domain:</span>       ${esc(STATE.manual.classification.domain||AUTO_RECO.deduced.industry)}`,
+    `${c}jurisdiction:</span> ${esc(STATE.manual.classification.jurisdiction||'India')}`,
+    `${c}bodies:</span>       [ ${bodyList.map(b=>'<span class="g">'+b+'</span>').join(', ')} ]`,
+    `${c}policies:</span>     <span class="g">${count}</span> across 5 planes`,
+    ``,
+    `${c}enforcement:</span>`,
+    `  pre_proposal:  [ TL-01, TL-03, BC-04 ]   <span class="k"># before saveProposalForm</span>`,
+    `  pre_purchase:  [ BC-01, BC-02, BC-05 ]   <span class="k"># before buyProductClient</span>`,
+    `  continuous:    [ BC-06, BC-08 ]`,
+    ``,
+    `${c}fail_mode:</span>    <span class="s">closed</span>`,
+    `${c}provenance:</span>   <span class="s">cryptographic · external witness</span>`,
+    `${c}signed_by:</span>    rohit@aarvion.ai · <span class="g">✓ verified</span>`,
+  ].join('\n');
+}
+function finish(kind){
+  // add agent to dashboard
+  const exists=STATE.agents.find(a=>a.name===STATE.agent.name);
+  const tags = kind==='auto' ? ['IRDAI','OFAC','DPDP'] : (STATE.manual.bodies.slice(0,3).map(b=>BODIES[b].nm));
+  const sub = `${STATE.manual.classification.domain||'Insurance'} · ${kind==='auto'?'auto-discovered':'manual'} · governed`;
+  if(exists){ exists.status='gov'; exists.sub=sub; exists.tags=tags.length?tags:['Governed']; }
+  else STATE.agents.unshift({name:STATE.agent.name||'New Agent',sub,status:'gov',tags:tags.length?tags:['Governed']});
+  toast('✓ Control spec signed & deployed to runtime');
+  // reset working state
+  STATE.agent={name:'',desc:'',industry:'',func:'',process:'',jurisdictions:[],source:null,docs:[]};
+  STATE.manual={classification:{domain:'',subfunction:'',jurisdiction:''},bodies:[],openBodies:[],rulesetCfg:{}};
+  STATE.ruleCfg={}; STATE.flow=null; STATE.autoStep=0;
+  setTimeout(()=>go('home'),500);
+}
+
+/* ---- go on review needs flow from auto: ensure builder reachable from auto results ---- */
+render();
+</script>
+</body>
+</html>
